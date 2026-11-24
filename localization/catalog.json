@@ -8269,16 +8269,16 @@
       "ru": "Введите порт в диапазоне 1–65535 или отключите параметр «Использовать собственный сервер»."
     },
     "请输入 9 位设备 ID": {
-      "zh-Hans": "请输入 9 位设备 ID",
-      "en": "Enter a 9-digit device ID",
-      "ru": "Введите ID из 9 цифр",
-      "zh-Hant": "請輸入 9 位裝置 ID",
-      "ja": "9桁のデバイスIDを入力",
-      "ko": "기기 ID 9자리를 입력하세요.",
-      "de": "Geben Sie eine 9-stellige Geräte-ID ein",
-      "fr": "Saisissez un identifiant d'appareil à 9 chiffres",
-      "es": "Ingrese una ID de dispositivo de 9 dígitos",
-      "pt-BR": "Insira um ID de dispositivo de 9 dígitos"
+      "zh-Hans": "请输入 1–9 位字母或数字 ID",
+      "en": "Enter a 1–9 letter or digit device ID",
+      "ru": "Введите ID устройства из 1–9 букв или цифр",
+      "zh-Hant": "請輸入 1–9 位字母或數字 ID",
+      "ja": "1–9文字の英数字のデバイスIDを入力してください",
+      "ko": "1–9자의 영문/숫자 기기 ID를 입력하세요.",
+      "de": "Geben Sie eine 1–9-stellige Geräte-ID aus Buchstaben oder Ziffern ein",
+      "fr": "Saisissez un identifiant d'appareil de 1 à 9 lettres ou chiffres",
+      "es": "Ingrese una ID de dispositivo de 1 a 9 letras o dígitos",
+      "pt-BR": "Insira um ID de dispositivo de 1 a 9 letras ou dígitos"
     },
     "请输入六位密码:": {
       "zh-Hans": "请输入六位密码:",
@@ -8305,16 +8305,16 @@
       "pt-BR": "Insira a senha:"
     },
     "请输入有效的 9 位设备 ID": {
-      "zh-Hans": "请输入有效的 9 位设备 ID",
-      "en": "Enter a valid 9-digit device ID",
-      "ru": "Введите корректный 9-значный ID устройства",
-      "zh-Hant": "請輸入有效的 9 位裝置 ID",
-      "ja": "有効な9桁のデバイスIDを入力してください",
-      "ko": "유효한 9자리 장치 ID를 입력하세요.",
-      "de": "Geben Sie eine gültige 9-stellige Geräte-ID ein",
-      "fr": "Entrez un identifiant d'appareil valide à 9 chiffres",
-      "es": "Ingrese una ID de dispositivo válida de 9 dígitos",
-      "pt-BR": "Insira um ID de dispositivo válido de 9 dígitos"
+      "zh-Hans": "请输入有效的 1–9 位字母或数字 ID",
+      "en": "Enter a valid 1–9 letter or digit device ID",
+      "ru": "Введите корректный ID устройства из 1–9 букв или цифр",
+      "zh-Hant": "請輸入有效的 1–9 位字母或數字 ID",
+      "ja": "有効な1–9文字の英数字のデバイスIDを入力してください",
+      "ko": "유효한 1–9자의 영문/숫자 장치 ID를 입력하세요.",
+      "de": "Geben Sie eine gültige Geräte-ID aus 1–9 Buchstaben oder Ziffern ein",
+      "fr": "Entrez un identifiant d'appareil valide de 1 à 9 lettres ou chiffres",
+      "es": "Ingrese una ID de dispositivo válida de 1 a 9 letras o dígitos",
+      "pt-BR": "Insira um ID de dispositivo válido de 1 a 9 letras ou dígitos"
     },
     "请输入有效的 IPv4 或 IPv6 地址": {
       "zh-Hans": "请输入有效的 IPv4 或 IPv6 地址",
@@ -11867,6 +11867,54 @@
       "fr": "Adresse distante",
       "es": "Dirección remota",
       "pt-BR": "Endereço remoto"
+    },
+    "更改 ID": {
+      "zh-Hans": "更改 ID",
+      "en": "Change ID",
+      "ru": "Изменить ID",
+      "zh-Hant": "更改 ID",
+      "ja": "IDを変更",
+      "ko": "ID 변경",
+      "de": "ID ändern",
+      "fr": "Changer l'ID",
+      "es": "Cambiar ID",
+      "pt-BR": "Alterar ID"
+    },
+    "新 ID（1–9 位数字或字母）": {
+      "zh-Hans": "新 ID（1–9 位数字或字母）",
+      "en": "New ID (1–9 letters or digits)",
+      "ru": "Новый ID (1–9 букв или цифр)",
+      "zh-Hant": "新 ID（1–9 位數字或字母）",
+      "ja": "新しいID（1–9文字の英数字）",
+      "ko": "새 ID(1–9자 영문/숫자)",
+      "de": "Neue ID (1–9 Buchstaben oder Ziffern)",
+      "fr": "Nouvel ID (1 à 9 lettres ou chiffres)",
+      "es": "Nuevo ID (1 a 9 letras o dígitos)",
+      "pt-BR": "Novo ID (1 a 9 letras ou dígitos)"
+    },
+    "请输入 1–9 位字母或数字，首位不能为 0，也不能以 C-、web-、cli- 开头。": {
+      "zh-Hans": "请输入 1–9 位字母或数字，首位不能为 0，也不能以 C-、web-、cli- 开头。",
+      "en": "Enter 1–9 letters or digits; the first character cannot be 0 and the ID cannot start with C-, web- or cli-.",
+      "ru": "Введите от 1 до 9 букв или цифр; первый символ не может быть 0, а ID не может начинаться с C-, web- или cli-.",
+      "zh-Hant": "請輸入 1–9 位字母或數字，首位不能為 0，也不能以 C-、web-、cli- 開頭。",
+      "ja": "1–9文字の英数字を入力してください。先頭は0にできず、C-、web-、cli-で始めることはできません。",
+      "ko": "1–9자의 영문/숫자를 입력하세요. 첫 자리는 0일 수 없고 C-, web-, cli-로 시작할 수 없습니다.",
+      "de": "Geben Sie 1–9 Buchstaben oder Ziffern ein; das erste Zeichen darf nicht 0 sein und die ID darf nicht mit C-, web- oder cli- beginnen.",
+      "fr": "Saisissez 1 à 9 lettres ou chiffres ; le premier caractère ne peut pas être 0 et l'ID ne peut pas commencer par C-, web- ou cli-.",
+      "es": "Ingrese de 1 a 9 letras o dígitos; el primer carácter no puede ser 0 y el ID no puede comenzar con C-, web- o cli-.",
+      "pt-BR": "Insira de 1 a 9 letras ou dígitos; o primeiro caractere não pode ser 0 e o ID não pode começar com C-, web- ou cli-."
+    },
+    "仅自建服务端支持更改 ID": {
+      "zh-Hans": "仅自建服务端支持更改 ID",
+      "en": "Changing the device ID is only supported on a self-hosted server",
+      "ru": "Смена ID устройства поддерживается только на собственном сервере",
+      "zh-Hant": "僅自建伺服器支援更改 ID",
+      "ja": "IDの変更はセルフホストサーバーでのみ利用できます",
+      "ko": "ID 변경은 자체 호스팅 서버에서만 지원됩니다",
+      "de": "Das Ändern der ID wird nur auf einem selbst gehosteten Server unterstützt",
+      "fr": "La modification de l'ID est uniquement prise en charge sur un serveur auto-hébergé",
+      "es": "El cambio de ID solo es compatible con un servidor autoalojado",
+      "pt-BR": "A alteração do ID só é compatível com um servidor auto-hospedado"
     }
   },
   "desktop": {
@@ -12382,7 +12430,10 @@
     "滚轮灵敏度",
     "特别赞助",
     "本端地址",
-    "对端地址"
+    "对端地址",
+    "更改 ID",
+    "新 ID（1–9 位数字或字母）",
+    "请输入 1–9 位字母或数字，首位不能为 0，也不能以 C-、web-、cli- 开头。"
   ],
   "platforms": {
     "desktop": [
@@ -12939,7 +12990,8 @@
       "请检查 FUSE 安装和挂载权限。",
       "可使用文件传输窗口发送文件。",
       "本端地址",
-      "对端地址"
+      "对端地址",
+      "仅自建服务端支持更改 ID"
     ],
     "android": [
       " · 已完成",

@@ -238,7 +238,7 @@
     <string name="text_990fd23c62de5ccf" formatted="false">"Le délai de demande a expiré et l\'état de l\'écran de confidentialité de l\'ordinateur n\'a pas été confirmé."</string>
     <string name="text_e5c8fa6dcf7b2a8b" formatted="false">"Veuillez attendre que le fichier actuel soit envoyé."</string>
     <string name="text_9305d9d72b06110d" formatted="false">"Veuillez saisir un port compris entre 1 et 65535."</string>
-    <string name="text_3c7223dfb8dde5cf" formatted="false">"Saisissez un identifiant d\'appareil à 9 chiffres"</string>
+    <string name="text_3c7223dfb8dde5cf" formatted="false">"Saisissez un identifiant d\'appareil de 1 à 9 lettres ou chiffres"</string>
     <string name="text_285a0714894d2899" formatted="false">"Veuillez saisir un mot de passe d\'accès valide"</string>
     <string name="text_c808bb77ffd2b4cd" formatted="false">"Impossible d\'appliquer les paramètres. Essayer à nouveau."</string>
     <string name="text_a762e7e650e285fa" formatted="false">"Licence du logiciel"</string>

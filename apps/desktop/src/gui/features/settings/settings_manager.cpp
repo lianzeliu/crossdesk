@@ -246,8 +246,21 @@ bool WriteFileAtomically(const std::filesystem::path &target,
 SettingsManager::SettingsManager(GuiRuntime &owner) : owner_(owner) {}
 
 bool SettingsManager::ApplyHostIdentity(const std::string& identity, bool self_hosted) {
-  if (identity.size() != 16 || identity[9] != '@' ||
-      identity.substr(0, 9).find_first_not_of("0123456789") != std::string::npos)
+  // Identity is "<1-9 letter/digit ID>@<6 character password>": 8-16 chars.
+  // The ID part follows the custom-ID rule (letters/digits, first char not
+  // '0', no C-/web-/cli- prefix); the password part is 6 letters/digits.
+  const auto at_pos = identity.find('@');
+  if (identity.size() < 8 || identity.size() > 16 || at_pos == std::string::npos ||
+      at_pos < 1 || at_pos > 9 || identity.size() - at_pos - 1 != 6 ||
+      identity[0] == '0' ||
+      identity.substr(0, at_pos).find_first_not_of(
+          "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") !=
+          std::string::npos ||
+      identity.substr(at_pos + 1).find_first_not_of(
+          "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") !=
+          std::string::npos ||
+      identity.substr(0, at_pos) == "web" ||
+      identity.substr(0, at_pos) == "cli")
     return false;
   std::lock_guard lock(cache_mutex_);
   ActivateIdentity(identity.c_str(), self_hosted);

@@ -186,6 +186,18 @@ struct PasswordChangeState {
   std::string pending_password_change_request_id_;
   std::string pending_local_password_;
   std::string password_change_error_;
+  // Device ID change state. Shares password_change_mutex_ with the password
+  // change above: a device may not change its password and its ID at the
+  // same time, and the two flows reuse the same request-ID sequence.
+  bool device_id_change_pending_ = false;
+  bool device_id_change_result_ready_ = false;
+  bool device_id_change_succeeded_ = false;
+  bool device_id_change_result_uncertain_ = false;
+  std::chrono::steady_clock::time_point device_id_change_requested_at_;
+  std::string pending_device_id_change_request_id_;
+  std::string pending_device_id_change_requested_id_;
+  std::string pending_device_id_change_new_password_;
+  std::string device_id_change_error_;
   bool credential_recovery_in_progress_ = false;
   bool credential_recovery_attempt_pending_ = false;
   CredentialRecoveryAction credential_recovery_action_ = CredentialRecoveryAction::Idle;

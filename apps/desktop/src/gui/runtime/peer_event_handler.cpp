@@ -212,6 +212,56 @@ void PeerEventHandler::OnSignalMessage(const char* message, size_t size,
     runtime->password_change_result_uncertain_ = runtime->password_change_recovery_ &&
                                                 !runtime->password_change_succeeded_;
     runtime->password_change_result_ready_ = true;
+  } else if (type == "change_device_id") {
+    std::lock_guard<std::mutex> lock(runtime->password_change_mutex_);
+    if (!runtime->device_id_change_pending_) {
+      LOG_WARN("Ignore unexpected device ID change response");
+      return;
+    }
+
+    if (!j.contains("request_id") || !j["request_id"].is_string() ||
+        j["request_id"].get<std::string>() !=
+            runtime->pending_device_id_change_request_id_) {
+      LOG_WARN("Ignore device ID change response with unexpected request id");
+      return;
+    }
+
+    if (j.contains("user_id") && j["user_id"].is_string()) {
+      const std::string response_user_id = j["user_id"].get<std::string>();
+      if (!response_user_id.empty() &&
+          response_user_id != runtime->client_id_) {
+        LOG_WARN("Ignore device ID change response for unexpected device");
+        return;
+      }
+    }
+
+    if (j.contains("new_device_id") && j["new_device_id"].is_string()) {
+      const std::string response_new_id = j["new_device_id"].get<std::string>();
+      if (!response_new_id.empty() &&
+          response_new_id != runtime->pending_device_id_change_requested_id_) {
+        LOG_WARN("Ignore device ID change response for unexpected new ID");
+        return;
+      }
+    }
+
+    runtime->device_id_change_succeeded_ =
+        j.contains("status") && j["status"].is_string() &&
+        j["status"].get<std::string>() == "success";
+    runtime->device_id_change_error_ =
+        j.contains("reason") && j["reason"].is_string()
+            ? j["reason"].get<std::string>()
+            : "Device ID change failed";
+    if (runtime->device_id_change_succeeded_ && j.contains("new_password") &&
+        j["new_password"].is_string()) {
+      runtime->pending_device_id_change_new_password_ =
+          j["new_password"].get<std::string>();
+    }
+    // There is no credential-recovery replay for ID changes, so a rejected
+    // response cannot leave the outcome uncertain in the password sense:
+    // the server only deletes the old ID after the new one is committed,
+    // and a failed reply means the old identity is still intact.
+    runtime->device_id_change_result_uncertain_ = false;
+    runtime->device_id_change_result_ready_ = true;
   }
 }
 

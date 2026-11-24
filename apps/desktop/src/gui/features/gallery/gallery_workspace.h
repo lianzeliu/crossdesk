@@ -57,10 +57,21 @@ struct Workspace {
     }
     return result;
   }
+  // A device ID is 1-9 letters or digits, first character not '0'.
+  // "C-", "web-" and "cli-" prefixes are reserved for controller/temporary
+  // identities, as are the bare "web"/"cli" registration kinds.
   static bool ValidId(const std::string &id) {
-    return id.size() == 9 &&
-           std::all_of(id.begin(), id.end(),
-                       [](unsigned char c) { return c >= '0' && c <= '9'; });
+    if (id.empty() || id.size() > 9 || id[0] == '0') return false;
+    if (!std::all_of(id.begin(), id.end(), [](unsigned char c) {
+          return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') ||
+                 (c >= 'a' && c <= 'z');
+        }))
+      return false;
+    if (id.rfind("C-", 0) == 0 || id.rfind("web-", 0) == 0 ||
+        id.rfind("cli-", 0) == 0)
+      return false;
+    if (id == "web" || id == "cli") return false;
+    return true;
   }
   bool Contains(const std::string &id) const {
     return wall_ids_.count(id) != 0;

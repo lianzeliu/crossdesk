@@ -238,7 +238,7 @@
     <string name="text_990fd23c62de5ccf" formatted="false">"请求超时，尚未确认电脑的隐私屏状态"</string>
     <string name="text_e5c8fa6dcf7b2a8b" formatted="false">"请等待当前文件发送完成"</string>
     <string name="text_9305d9d72b06110d" formatted="false">"请输入 1–65535 范围内的端口"</string>
-    <string name="text_3c7223dfb8dde5cf" formatted="false">"请输入 9 位设备 ID"</string>
+    <string name="text_3c7223dfb8dde5cf" formatted="false">"请输入 1–9 位字母或数字 ID"</string>
     <string name="text_285a0714894d2899" formatted="false">"请输入有效访问密码"</string>
     <string name="text_c808bb77ffd2b4cd" formatted="false">"调整失败，请重试。"</string>
     <string name="text_a762e7e650e285fa" formatted="false">"软件许可"</string>

@@ -238,7 +238,7 @@
     <string name="text_990fd23c62de5ccf" formatted="false">"Die Anfrage ist abgelaufen und der Datenschutzstatus des Computers wurde nicht bestätigt."</string>
     <string name="text_e5c8fa6dcf7b2a8b" formatted="false">"Bitte warten Sie, bis die aktuelle Datei gesendet wird."</string>
     <string name="text_9305d9d72b06110d" formatted="false">"Bitte geben Sie einen Port im Bereich 1–65535 ein"</string>
-    <string name="text_3c7223dfb8dde5cf" formatted="false">"Geben Sie eine 9-stellige Geräte-ID ein"</string>
+    <string name="text_3c7223dfb8dde5cf" formatted="false">"Geben Sie eine 1–9-stellige Geräte-ID aus Buchstaben oder Ziffern ein"</string>
     <string name="text_285a0714894d2899" formatted="false">"Bitte geben Sie ein gültiges Zugangspasswort ein"</string>
     <string name="text_c808bb77ffd2b4cd" formatted="false">"Einstellungen konnten nicht angewendet werden. Versuchen Sie es erneut."</string>
     <string name="text_a762e7e650e285fa" formatted="false">"Softwarelizenz"</string>

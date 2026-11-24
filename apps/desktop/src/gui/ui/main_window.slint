@@ -664,6 +664,10 @@ export component MainWindow inherits Window {
     in-out property <string> remote-id-input: "";
     in property <bool> password-visible: true;
     in property <bool> password-change-pending: false;
+    in property <bool> device-id-change-pending: false;
+    in-out property <bool> change-id-open: false;
+    in-out property <string> new-device-id-input: "";
+    in-out property <bool> change-id-invalid: false;
     in property <bool> signal-connected: false;
     in property <bool> signal-reconnecting: false;
     in property <bool> signal-tls-error: false;
@@ -803,6 +807,7 @@ export component MainWindow inherits Window {
     callback toggle-password-visibility;
     callback refresh-password;
     callback reset-password(string) -> bool;
+    callback change-device-id(string) -> bool;
     callback format-remote-id(string) -> string;
     callback connect-requested(string);
     callback recent-connect(string);
@@ -1453,6 +1458,21 @@ export component MainWindow inherits Window {
                 Text { x: 16px; y: 14px; width: parent.width - 32px; height: 24px; overflow: elide; text: UiStrings.local-desktop; font-size: 16px; font-weight: 600; color: WorkbenchStyle.text; }
                 Text { x: 16px; y: 38px; width: parent.width - 32px; height: 18px; text: root.lan-mode ? GalleryStrings.texts[69] : GalleryStrings.texts[70]; font-size: 11px; color: WorkbenchStyle.muted; overflow: elide; }
                 local-address-label := Text { x: 16px; y: 68px; height: 18px; text: root.lan-mode ? GalleryStrings.texts[71] : UiStrings.local-id; font-size: 12px; color: WorkbenchStyle.muted; vertical-alignment: top; }
+                change-id-metrics := Text {
+                    visible: false; accessible-role: none;
+                    text: GalleryStrings.texts[215];
+                    font-size: 12px; font-weight: 500;
+                }
+                change-id-action := WorkbenchButton {
+                    visible: !root.lan-mode;
+                    x: local-address-label.x + local-address-label.preferred-width + 4px;
+                    y: local-address-label.y - 5px;
+                    width: change-id-metrics.preferred-width + 20px; height: 22px;
+                    quiet: true; text: change-id-metrics.text;
+                    text-size: 12px; text-color: WorkbenchStyle.accent;
+                    enabled: !root.lan-mode && root.self-hosted-enabled && !root.password-change-pending && !root.device-id-change-pending;
+                    clicked => { root.change-id-open = true; }
+                }
                 lan-switch-ip-metrics := Text {
                     visible: false; accessible-role: none;
                     text: GalleryStrings.texts[72];
@@ -1696,7 +1716,7 @@ export component MainWindow inherits Window {
                     remote-id-editor := TextInput {
                         x: 12px; width: parent.width - 24px; height: parent.height;
                         text <=> root.remote-id-input; font-size: root.lan-mode ? 18px : 24px; font-weight: 600; letter-spacing: root.lan-mode ? 0px : 1px;
-                        input-type: root.lan-mode ? InputType.text : InputType.number; color: WorkbenchStyle.text;
+                        input-type: InputType.text; color: WorkbenchStyle.text;
                         accessible-label: root.lan-mode ? GalleryStrings.texts[85] : UiStrings.remote-id;
                         enabled: !root.connection-pending && !root.lan-connecting;
                         vertical-alignment: center;
@@ -2547,6 +2567,52 @@ export component MainWindow inherits Window {
                         }
                     }
                     SecondaryButton { text: UiStrings.cancel; height: 34px; horizontal-stretch: 1; clicked => { root.new-password-input = ""; root.reset-password-invalid = false; root.reset-password-open = false; } }
+                }
+            }
+        }
+    }
+
+    // Change device ID modal (self-hosted servers only).
+    if root.change-id-open: Rectangle {
+        background: #00000042;
+        z: 40;
+        TouchArea { clicked => { focus-sink.focus(); } }
+        DialogSurface {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            width: root.compact-language ? 260px : 320px;
+            height: change-id-content.preferred-height;
+            change-id-content := VerticalLayout {
+                padding: 24px;
+                spacing: 16px;
+                Text {
+                    text: GalleryStrings.texts[216]; color: WorkbenchStyle.text;
+                    font-size: 13px; font-weight: 500; wrap: word-wrap;
+                    min-height: 22px; vertical-alignment: center;
+                }
+                PasswordInput {
+                    width: parent.width - 48px; height: 38px; text-size: 16px;
+                    text <=> root.new-device-id-input;
+                    max-length: 9;
+                    error: root.change-id-invalid;
+                }
+                if root.change-id-invalid: Text {
+                    text: GalleryStrings.texts[217]; color: #b42318; font-size: 12px; wrap: word-wrap;
+                }
+                HorizontalLayout {
+                    spacing: 12px; height: 34px;
+                    PrimaryButton {
+                        text: UiStrings.ok; height: 34px; horizontal-stretch: 1;
+                        enabled: !root.device-id-change-pending;
+                        clicked => {
+                            if (root.change-device-id(root.new-device-id-input)) {
+                                root.new-device-id-input = "";
+                                root.change-id-invalid = false;
+                                root.change-id-open = false;
+                            } else { root.change-id-invalid = true; }
+                        }
+                    }
+                    SecondaryButton { text: UiStrings.cancel; height: 34px; horizontal-stretch: 1; clicked => { root.new-device-id-input = ""; root.change-id-invalid = false; root.change-id-open = false; } }
                 }
             }
         }

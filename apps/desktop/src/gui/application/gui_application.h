@@ -71,6 +71,8 @@ private:
   void ShareLocalCursorState();
   bool RequestPasswordChange(const std::string &password);
   void HandlePasswordChangeResult();
+  bool RequestDeviceIdChange(const std::string &new_device_id);
+  void HandleDeviceIdChangeResult();
   void HandleCredentialRecovery();
   void SyncMainWindow();
   void ShowGalleryWindow();

@@ -238,7 +238,7 @@
     <string name="text_990fd23c62de5ccf" formatted="false">"請求超時，尚未確認電腦的隱私屏狀態"</string>
     <string name="text_e5c8fa6dcf7b2a8b" formatted="false">"請等待當前檔案傳送完成"</string>
     <string name="text_9305d9d72b06110d" formatted="false">"請輸入 1–65535 範圍內的埠"</string>
-    <string name="text_3c7223dfb8dde5cf" formatted="false">"請輸入 9 位裝置 ID"</string>
+    <string name="text_3c7223dfb8dde5cf" formatted="false">"請輸入 1–9 位字母或數字 ID"</string>
     <string name="text_285a0714894d2899" formatted="false">"請輸入有效訪問密碼"</string>
     <string name="text_c808bb77ffd2b4cd" formatted="false">"調整失敗，請重試。"</string>
     <string name="text_a762e7e650e285fa" formatted="false">"軟體許可"</string>

@@ -238,7 +238,7 @@
     <string name="text_990fd23c62de5ccf" formatted="false">"요청 시간이 초과되어 컴퓨터의 개인 정보 보호 화면 상태가 확인되지 않았습니다."</string>
     <string name="text_e5c8fa6dcf7b2a8b" formatted="false">"현재 파일이 전송될 때까지 기다려 주십시오."</string>
     <string name="text_9305d9d72b06110d" formatted="false">"1~65535 범위의 포트를 입력하세요."</string>
-    <string name="text_3c7223dfb8dde5cf" formatted="false">"기기 ID 9자리를 입력하세요."</string>
+    <string name="text_3c7223dfb8dde5cf" formatted="false">"1–9자의 영문/숫자 기기 ID를 입력하세요."</string>
     <string name="text_285a0714894d2899" formatted="false">"유효한 접속 비밀번호를 입력해주세요"</string>
     <string name="text_c808bb77ffd2b4cd" formatted="false">"설정을 적용할 수 없습니다. 다시 시도해 보세요."</string>
     <string name="text_a762e7e650e285fa" formatted="false">"소프트웨어 라이센스"</string>
