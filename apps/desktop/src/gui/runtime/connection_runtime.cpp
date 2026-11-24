@@ -252,6 +252,10 @@ void GuiRuntime::HandleServerControllerDisconnected(
 }
 
 void GuiRuntime::HandleScreenLock() {
+  // Screen lock on disconnect is disabled: never lock the host OS when the
+  // last controller disconnects or the client exits. The body below is kept
+  // for reference but is no longer reachable.
+  return;
   // Serialize request consumption with incoming admission so a reconnect
   // cancels a pending lock before it can interrupt the new controller.
   std::unique_lock lock(connection_status_mutex_);

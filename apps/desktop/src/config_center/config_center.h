@@ -142,7 +142,7 @@ class ConfigCenter {
   std::atomic<bool> enable_privacy_screen_{true};
   std::atomic<bool> privacy_local_unlock_allowed_{true};
   std::atomic<bool> privacy_black_screen_{false};
-  std::atomic<bool> lock_on_disconnect_{true};
+  std::atomic<bool> lock_on_disconnect_{false};
   std::atomic<bool> trusted_devices_only_{false};
   std::atomic<bool> save_remote_previews_{true};
   std::atomic<bool> pause_video_when_minimized_{true};
