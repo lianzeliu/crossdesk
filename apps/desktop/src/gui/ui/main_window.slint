@@ -1467,7 +1467,7 @@ export component MainWindow inherits Window {
                     visible: !root.lan-mode;
                     x: local-address-label.x + local-address-label.preferred-width + 4px;
                     y: local-address-label.y - 5px;
-                    width: change-id-metrics.preferred-width + 20px; height: 22px;
+                    width: max(change-id-metrics.preferred-width + 20px, 72px); height: 22px;
                     quiet: true; text: change-id-metrics.text;
                     text-size: 12px; text-color: WorkbenchStyle.accent;
                     enabled: !root.lan-mode && root.self-hosted-enabled && !root.password-change-pending && !root.device-id-change-pending;
