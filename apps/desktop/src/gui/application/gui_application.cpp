@@ -5775,7 +5775,7 @@ void GuiApplication::SyncAudioPlayback() {
         props->connection_status_ == MiniRtcConnectionStatus::MiniRtcConnectionConnected &&
         props->audio_capture_button_pressed_ &&
         ((wall_visible && props->wall_managed_) ||
-         (id == controlled_remote_id_ && props->stream_window_open_));
+         props->stream_window_open_);
     if (props->audio_allowed_.exchange(allowed) != allowed)
       props->preview_needs_sync_ = true;
     if (!allowed) devices_.ClearAudio(id);

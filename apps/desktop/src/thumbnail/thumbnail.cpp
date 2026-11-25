@@ -90,10 +90,22 @@ Thumbnail::Thumbnail(std::string save_path, unsigned char* aes128_key,
 
 namespace {
 
+// A remote device ID is 1-9 letters or digits, first character not '0'.
+// "C-", "web-" and "cli-" prefixes are reserved for controller/temporary
+// identities, as are the bare "web"/"cli" registration kinds. This matches
+// GalleryWorkspace::ValidId; keep the two in sync.
 bool IsRemoteId(const std::string& id) {
-  return id.size() == 9 &&
-         std::all_of(id.begin(), id.end(),
-                     [](unsigned char c) { return c >= '0' && c <= '9'; });
+  if (id.empty() || id.size() > 9 || id[0] == '0') return false;
+  if (!std::all_of(id.begin(), id.end(), [](unsigned char c) {
+        return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') ||
+               (c >= 'a' && c <= 'z');
+      }))
+    return false;
+  if (id.rfind("C-", 0) == 0 || id.rfind("web-", 0) == 0 ||
+      id.rfind("cli-", 0) == 0)
+    return false;
+  if (id == "web" || id == "cli") return false;
+  return true;
 }
 
 bool IsLanRecordId(const std::string& id) {
@@ -416,13 +428,18 @@ int Thumbnail::DeleteThumbnail(const std::string& filename_keyword) {
                               (filename_keyword + extension));
     return 0;
   }
-  const auto remote_id = filename_keyword.substr(0, 9);
+  // filename_keyword is the remote id (the recent-connections map key).
+  // Remote ids are 1-9 characters now, not always 9, so match files by the
+  // full id plus the separator that follows it ('.' for the current
+  // "<id>.json"/"<id>.png" files, 'Y'/'N' for legacy "<id>Y<host>" files).
+  const auto& remote_id = filename_keyword;
   if (!IsRemoteId(remote_id)) return -1;
   for (const auto& entry : std::filesystem::directory_iterator(save_path_)) {
     const auto name = entry.path().filename().string();
-    if (entry.is_regular_file() && name.size() > 9 &&
-        name.substr(0, 9) == remote_id &&
-        (name[9] == '.' || name[9] == 'Y' || name[9] == 'N')) {
+    if (entry.is_regular_file() && name.size() > remote_id.size() &&
+        name.substr(0, remote_id.size()) == remote_id &&
+        (name[remote_id.size()] == '.' || name[remote_id.size()] == 'Y' ||
+         name[remote_id.size()] == 'N')) {
       std::filesystem::remove(entry.path());
     }
   }
