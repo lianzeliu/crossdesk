@@ -1473,7 +1473,7 @@ export component MainWindow inherits Window {
             y: 0px; height: parent.height - 28px; visible: !root.gallery-mode;
         // Two balanced cards keep identity and connection actions distinct.
         Rectangle {
-            x: 20px; y: 40px; width: parent.width - 40px; height: 208px;
+            x: 20px; y: 40px; width: parent.width - 40px - 260px; height: 208px;
             // Button tooltips extend below these cards into the recent section.
             z: 1;
             local-card := WorkbenchCard {
@@ -1482,17 +1482,12 @@ export component MainWindow inherits Window {
                 Text { x: 16px; y: 14px; width: parent.width - 32px; height: 24px; overflow: elide; text: UiStrings.local-desktop; font-size: 16px; font-weight: 600; color: WorkbenchStyle.text; }
                 Text { x: 16px; y: 38px; width: parent.width - 32px; height: 18px; text: root.lan-mode ? GalleryStrings.texts[69] : GalleryStrings.texts[70]; font-size: 11px; color: WorkbenchStyle.muted; overflow: elide; }
                 local-address-label := Text { x: 16px; y: 68px; height: 18px; text: root.lan-mode ? GalleryStrings.texts[71] : UiStrings.local-id; font-size: 12px; color: WorkbenchStyle.muted; vertical-alignment: top; }
-                change-id-metrics := Text {
-                    visible: false; accessible-role: none;
-                    text: GalleryStrings.texts[215];
-                    font-size: 12px; font-weight: 500;
-                }
                 change-id-action := WorkbenchButton {
                     visible: !root.lan-mode;
                     x: local-address-label.x + local-address-label.preferred-width + 4px;
                     y: local-address-label.y - 5px;
-                    width: max(change-id-metrics.preferred-width + 20px, 72px); height: 22px;
-                    quiet: true; text: change-id-metrics.text;
+                    width: 76px; height: 22px;
+                    text: GalleryStrings.texts[215];
                     text-size: 12px; text-color: WorkbenchStyle.accent;
                     enabled: !root.lan-mode && root.self-hosted-enabled && !root.password-change-pending && !root.device-id-change-pending;
                     clicked => { root.change-id-open = true; }
@@ -1777,6 +1772,8 @@ export component MainWindow inherits Window {
         // Recent connections: previews, presence badges, and separate primary/overflow actions.
         recent-panel := TouchArea {
             y: 260px;
+            // Leave the 248px address-book column (plus its 12px gap) on the right.
+            width: parent.width - 20px - 260px;
             height: parent.height - self.y;
             // This observer survives model resets that destroy hovered cards
             // before their has-hover changed handler can dismiss the details.
@@ -1797,7 +1794,7 @@ export component MainWindow inherits Window {
             Text { x: 20px; y: 0px; width: recent-group-filter.x - self.x - 12px; height: 32px; text: UiStrings.recent-connections; font-size: 15px; font-weight: 600; color: WorkbenchStyle.text; vertical-alignment: center; }
             recent-group-filter := GroupFilter {
                 visible: !root.lan-mode;
-                x: parent.width - self.width - 20px; y: 0px;
+                x: parent.width - self.width; y: 0px;
                 width: 155px; height: 32px;
                 normal-background: white;
                 normal-outline-color: UiSurface.edge;
@@ -1811,7 +1808,7 @@ export component MainWindow inherits Window {
             recent-list := FlatSurface {
                 x: 20px;
                 y: 36px;
-                width: parent.width - 40px - 260px;
+                width: parent.width - 20px;
                 height: 142px;
                 // A light flat surface groups the cards and their scrollbar.
                 background: root.recent-connections.length > 0 ? #f5f7fb : transparent;
@@ -2088,107 +2085,109 @@ export component MainWindow inherits Window {
                 }
                 }
             }
-            // Address book: right column beside the recent list. Click a
-            // contact to connect; right-click (or the "..." button) opens
-            // the shortcut/rename/delete menu.
-            contacts-panel := FlatSurface {
-                x: parent.width - 268px;
-                y: 36px;
-                width: 248px;
-                height: parent.height - 48px;
-                background: white;
-                outline-color: UiSurface.edge;
-                border-radius: UiRadius.surface;
-                clip: true;
-                Text {
-                    x: 12px; y: 0px; width: 120px; height: 32px;
-                    text: GalleryStrings.texts[218];
-                    font-size: 15px; font-weight: 600; color: WorkbenchStyle.text;
-                    vertical-alignment: center;
-                }
-                Text {
-                    x: parent.width - 60px; y: 0px; width: 48px; height: 32px;
-                    text: "" + root.contacts.length;
-                    font-size: 12px; color: WorkbenchStyle.muted;
-                    horizontal-alignment: right; vertical-alignment: center;
-                }
-                SurfaceSeparator {
-                    x: 12px; y: 32px; width: parent.width - 24px; height: 1px;
-                    outline-color: UiSurface.separator;
-                }
-                contacts-scroll := ScrollView {
-                    x: 1px; y: 33px;
-                    width: parent.width - 2px;
-                    height: parent.height - 34px;
-                    viewport-width: self.width - 12px;
-                    viewport-height: max(self.height, root.contacts.length * 44px);
-                    for contact[index] in root.contacts: Rectangle {
-                        y: index * 44px; width: contacts-scroll.viewport-width; height: 44px;
-                        background: row-touch.has-hover ? ControlStyle.hover : white;
-                        private property <length> scroll-offset: contacts-scroll.viewport-y;
-                        changed scroll-offset => { row-menu.close-menu(); }
-                        Text {
-                            x: 12px; y: 4px; width: parent.width - 64px; height: 19px;
-                            text: contact.name; color: WorkbenchStyle.text;
-                            font-size: 13px; font-weight: 600; overflow: elide; vertical-alignment: center;
-                        }
-                        Text {
-                            x: 12px; y: 24px; width: parent.width - 64px; height: 16px;
-                            text: contact.id; font-size: 11px; color: WorkbenchStyle.muted; overflow: elide;
-                        }
-                        Rectangle {
-                            x: parent.width - 56px; y: 19px; width: 6px; height: 6px; border-radius: 3px;
-                            background: contact.online ? #21b567 : #92969e;
-                        }
-                        row-touch := TouchArea {
-                            x: 0px; y: 0px; width: parent.width; height: parent.height;
-                            mouse-cursor: pointer;
-                            clicked => { root.contact-connect(contact.id); }
-                            pointer-event(event) => {
-                                if event.button == PointerEventButton.right && event.kind == PointerEventKind.down {
-                                    row-menu.open-menu();
-                                }
+        }
+
+        // Address book: full-height column on the right of the whole
+        // content area, from the cards down to the status bar. Click a
+        // contact to connect; right-click (or the "..." button) opens
+        // the shortcut/rename/delete menu.
+        contacts-panel := FlatSurface {
+            x: parent.width - 268px;
+            y: 40px;
+            width: 248px;
+            height: parent.height - 40px;
+            background: white;
+            outline-color: UiSurface.edge;
+            border-radius: UiRadius.surface;
+            clip: true;
+            Text {
+                x: 12px; y: 0px; width: 120px; height: 32px;
+                text: GalleryStrings.texts[218];
+                font-size: 15px; font-weight: 600; color: WorkbenchStyle.text;
+                vertical-alignment: center;
+            }
+            Text {
+                x: parent.width - 60px; y: 0px; width: 48px; height: 32px;
+                text: "" + root.contacts.length;
+                font-size: 12px; color: WorkbenchStyle.muted;
+                horizontal-alignment: right; vertical-alignment: center;
+            }
+            SurfaceSeparator {
+                x: 12px; y: 32px; width: parent.width - 24px; height: 1px;
+                outline-color: UiSurface.separator;
+            }
+            contacts-scroll := ScrollView {
+                x: 1px; y: 33px;
+                width: parent.width - 2px;
+                height: parent.height - 34px;
+                viewport-width: self.width - 12px;
+                viewport-height: max(self.height, root.contacts.length * 44px);
+                for contact[index] in root.contacts: Rectangle {
+                    y: index * 44px; width: contacts-scroll.viewport-width; height: 44px;
+                    background: row-touch.has-hover ? ControlStyle.hover : white;
+                    private property <length> scroll-offset: contacts-scroll.viewport-y;
+                    changed scroll-offset => { row-menu.close-menu(); }
+                    Text {
+                        x: 12px; y: 4px; width: parent.width - 64px; height: 19px;
+                        text: contact.name; color: WorkbenchStyle.text;
+                        font-size: 13px; font-weight: 600; overflow: elide; vertical-alignment: center;
+                    }
+                    Text {
+                        x: 12px; y: 24px; width: parent.width - 64px; height: 16px;
+                        text: contact.id; font-size: 11px; color: WorkbenchStyle.muted; overflow: elide;
+                    }
+                    Rectangle {
+                        x: parent.width - 56px; y: 19px; width: 6px; height: 6px; border-radius: 3px;
+                        background: contact.online ? #21b567 : #92969e;
+                    }
+                    row-touch := TouchArea {
+                        x: 0px; y: 0px; width: parent.width; height: parent.height;
+                        mouse-cursor: pointer;
+                        clicked => { root.contact-connect(contact.id); }
+                        pointer-event(event) => {
+                            if event.button == PointerEventButton.right && event.kind == PointerEventKind.down {
+                                row-menu.open-menu();
                             }
-                        }
-                        row-menu := GalleryMenuButton {
-                            x: parent.width - self.width - 8px; y: 10px;
-                            width: 24px; height: 24px;
-                            compact-trigger: true;
-                            compact-menu: true;
-                            enabled: !root.gallery-mode;
-                            text: GalleryStrings.texts[94];
-                            menu-width: root.compact-language ? 168px : 216px;
-                            items: [
-                                {label: GalleryStrings.texts[220], enabled: true},
-                                {label: GalleryStrings.texts[35], enabled: true},
-                                {label: GalleryStrings.texts[95], enabled: true},
-                            ];
-                            item-icons: [FontAwesomeIcons.arrow-up-right-from-square, FontAwesomeIcons.pen, FontAwesomeIcons.trash-can];
-                            destructive-index: 2;
-                            selected(action) => {
-                                if action == 0 {
-                                    root.contact-create-shortcut(contact.id);
-                                } else if action == 1 {
-                                    root.alias-remote-id = contact.id;
-                                    root.alias-input = contact.name;
-                                    root.alias-for-contact = true;
-                                    root.alias-open = true;
-                                } else if action == 2 {
-                                    root.contact-remove(contact.id);
-                                }
-                            }
-                        }
-                        if index + 1 < root.contacts.length: SurfaceSeparator {
-                            x: 12px; y: parent.height - 1px; width: parent.width - 24px; height: 1px;
-                            outline-color: UiSurface.separator;
                         }
                     }
+                    row-menu := GalleryMenuButton {
+                        x: parent.width - self.width - 8px; y: 10px;
+                        width: 24px; height: 24px;
+                        compact-trigger: true;
+                        compact-menu: true;
+                        enabled: !root.gallery-mode;
+                        text: GalleryStrings.texts[94];
+                        menu-width: root.compact-language ? 168px : 216px;
+                        items: [
+                            {label: GalleryStrings.texts[220], enabled: true},
+                            {label: GalleryStrings.texts[35], enabled: true},
+                            {label: GalleryStrings.texts[95], enabled: true},
+                        ];
+                        item-icons: [FontAwesomeIcons.arrow-up-right-from-square, FontAwesomeIcons.pen, FontAwesomeIcons.trash-can];
+                        destructive-index: 2;
+                        selected(action) => {
+                            if action == 0 {
+                                root.contact-create-shortcut(contact.id);
+                            } else if action == 1 {
+                                root.alias-remote-id = contact.id;
+                                root.alias-input = contact.name;
+                                root.alias-for-contact = true;
+                                root.alias-open = true;
+                            } else if action == 2 {
+                                root.contact-remove(contact.id);
+                            }
+                        }
+                    }
+                    if index + 1 < root.contacts.length: SurfaceSeparator {
+                        x: 12px; y: parent.height - 1px; width: parent.width - 24px; height: 1px;
+                        outline-color: UiSurface.separator;
+                    }
                 }
-                if root.contacts.length == 0: Text {
-                    x: 0px; y: 33px; width: parent.width; height: parent.height - 33px;
-                    text: GalleryStrings.texts[221]; color: #808080; font-size: 12px;
-                    horizontal-alignment: center; vertical-alignment: center;
-                }
+            }
+            if root.contacts.length == 0: Text {
+                x: 0px; y: 33px; width: parent.width; height: parent.height - 33px;
+                text: GalleryStrings.texts[221]; color: #808080; font-size: 12px;
+                horizontal-alignment: center; vertical-alignment: center;
             }
         }
 
