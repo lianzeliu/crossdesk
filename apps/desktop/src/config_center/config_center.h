@@ -17,6 +17,7 @@
 #include <optional>
 #include <utility>
 #include <string>
+#include <vector>
 
 
 namespace crossdesk {
