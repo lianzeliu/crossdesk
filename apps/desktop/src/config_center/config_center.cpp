@@ -50,6 +50,15 @@ bool IsValidInputSensitivity(std::int64_t percent) {
   return percent >= 10 && percent <= 500;
 }
 
+// Truncates to at most max_bytes without splitting a UTF-8 sequence, so a
+// long display name never becomes invalid UTF-8 in the UI.
+std::string TruncateUtf8(const std::string& text, std::size_t max_bytes) {
+  if (text.size() <= max_bytes) return text;
+  std::size_t cut = max_bytes;
+  while (cut > 0 && (text[cut] & 0xC0) == 0x80) --cut;
+  return text.substr(0, cut);
+}
+
 int ReadStartingBitrate(const CSimpleIniA& ini, const char* section,
                         const char* key, int fallback) {
   const char* value = ini.GetValue(section, key, nullptr);
@@ -234,6 +243,26 @@ int ConfigCenter::Load() {
   auto sizes = nlohmann::json::parse(
       ini_->GetValue(section_, "device_stream_window_sizes", "{}"), nullptr, false);
   ini_->stream_window_sizes = sizes.is_object() ? std::move(sizes) : nlohmann::json::object();
+  // Address book entries keep insertion order; drop malformed rows and
+  // duplicates so a hand-edited file cannot break the contacts panel.
+  contacts_.clear();
+  const auto stored_contacts = nlohmann::json::parse(
+      ini_->GetValue(section_, "contacts", "[]"), nullptr, false);
+  if (stored_contacts.is_array()) {
+    for (const auto& entry : stored_contacts) {
+      if (!entry.is_object() || !entry.contains("id") ||
+          !entry["id"].is_string())
+        continue;
+      const std::string id = entry["id"].get<std::string>();
+      if (id.empty() || id.size() > 16 || HasContact(id)) continue;
+      std::string name = id;
+      if (entry.contains("name") && entry["name"].is_string())
+        name = entry["name"].get<std::string>();
+      if (name.empty()) name = id;
+      name = TruncateUtf8(name, 64);
+      contacts_.push_back(Contact{id, name});
+    }
+  }
   portable_service_prompt_suppressed_ =
       ini_->GetBoolValue(section_, "portable_service_prompt_suppressed",
                         portable_service_prompt_suppressed_);
@@ -833,5 +862,66 @@ int ConfigCenter::SetFileTransferSavePath(const std::string& path) {
 std::string ConfigCenter::GetFileTransferSavePath() const {
   std::lock_guard<std::mutex> lock(file_path_mutex_);
   return file_transfer_save_path_;
+}
+
+std::vector<ConfigCenter::Contact> ConfigCenter::GetContacts() const {
+  return contacts_;
+}
+
+bool ConfigCenter::HasContact(const std::string& id) const {
+  return std::any_of(contacts_.begin(), contacts_.end(),
+                     [&](const Contact& contact) { return contact.id == id; });
+}
+
+int ConfigCenter::PersistContacts() {
+  nlohmann::json stored = nlohmann::json::array();
+  for (const auto& contact : contacts_)
+    stored.push_back({{"id", contact.id}, {"name", contact.name}});
+  return StoreValues({{"contacts", stored.dump()}});
+}
+
+int ConfigCenter::AddContact(const std::string& id, const std::string& name) {
+  if (id.empty() || id.size() > 16 || HasContact(id)) return -1;
+  std::string display_name = name.empty() ? id : name;
+  display_name = TruncateUtf8(display_name, 64);
+  contacts_.push_back(Contact{id, display_name});
+  if (PersistContacts() != 0) {
+    contacts_.pop_back();
+    return -1;
+  }
+  return 0;
+}
+
+int ConfigCenter::RemoveContact(const std::string& id) {
+  const auto found = std::find_if(
+      contacts_.begin(), contacts_.end(),
+      [&](const Contact& contact) { return contact.id == id; });
+  if (found == contacts_.end()) return -1;
+  const Contact removed = *found;
+  const auto removed_index =
+      static_cast<std::size_t>(found - contacts_.begin());
+  contacts_.erase(found);
+  if (PersistContacts() != 0) {
+    contacts_.insert(contacts_.begin() + removed_index, removed);
+    return -1;
+  }
+  return 0;
+}
+
+int ConfigCenter::RenameContact(const std::string& id, const std::string& name) {
+  const auto found = std::find_if(
+      contacts_.begin(), contacts_.end(),
+      [&](const Contact& contact) { return contact.id == id; });
+  if (found == contacts_.end()) return -1;
+  std::string display_name = name.empty() ? id : name;
+  display_name = TruncateUtf8(display_name, 64);
+  if (found->name == display_name) return 0;
+  const std::string previous = found->name;
+  found->name = display_name;
+  if (PersistContacts() != 0) {
+    found->name = previous;
+    return -1;
+  }
+  return 0;
 }
 }  // namespace crossdesk

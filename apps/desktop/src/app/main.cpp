@@ -246,11 +246,24 @@ static crossdesk::platform::InstanceResult AcquireInstance(
 }
 
 static int ExitForExistingInstance(
-    crossdesk::platform::InstanceResult result, bool interactive_launch) {
+    crossdesk::platform::InstanceResult result, bool interactive_launch,
+    const std::string& connect_id = {}) {
   if (interactive_launch &&
       result == crossdesk::platform::InstanceResult::kAlreadyRunning) {
     std::string error;
-    if (!crossdesk::platform::RequestInstanceActivation(error)) {
+#ifdef _WIN32
+    // A desktop shortcut launches `crossdesk.exe --connect <id>`; forward
+    // the id to the running instance instead of starting a second process.
+    const bool activated =
+        connect_id.empty()
+            ? crossdesk::platform::RequestInstanceActivation(error)
+            : crossdesk::platform::RequestInstanceActivationWithConnect(
+                  error, connect_id);
+#else
+    const bool activated =
+        crossdesk::platform::RequestInstanceActivation(error);
+#endif
+    if (!activated) {
       std::cerr << error << '\n';
 #ifdef _WIN32
       MessageBoxW(nullptr,
@@ -264,7 +277,8 @@ static int ExitForExistingInstance(
   return result == crossdesk::platform::InstanceResult::kAlreadyRunning ? 0 : 1;
 }
 
-static int RunApplication(int argc, char* argv[]) {
+static int RunApplication(int argc, char* argv[],
+                          const std::string& connect_id = {}) {
   // The instance guards are held before any configuration or logger is opened.
   auto path_manager = std::make_unique<crossdesk::PathManager>("CrossDesk");
   crossdesk::InitLogger(path_manager->GetLogPath().string());
@@ -332,6 +346,7 @@ static int RunApplication(int argc, char* argv[]) {
   }
 #endif
   crossdesk::Render render;
+  if (!connect_id.empty()) render.SetPendingConnectId(connect_id);
   const int result = render.Run();
 #if defined(__linux__) || defined(_WIN32) || defined(__APPLE__)
   runtime_daemon.Shutdown(result != 0);
@@ -453,16 +468,29 @@ int main(int argc, char* argv[]) {
   }
 #endif
   using crossdesk::platform::InstanceRole;
+  // Desktop shortcuts launch `crossdesk.exe --connect <id>`. Only the
+  // Windows GUI honors it; other platforms leave it empty and behave as
+  // before.
+  std::string pending_connect_id;
+#ifdef _WIN32
+  for (int i = 1; i + 1 < argc; ++i) {
+    if (std::strcmp(argv[i], "--connect") == 0) {
+      pending_connect_id = argv[i + 1];
+      break;
+    }
+  }
+#endif
   crossdesk::platform::SingleInstanceGuard launcher_instance;
   crossdesk::platform::SingleInstanceGuard client_instance;
   if (!IsDaemonChild(argc, argv)) {
     const auto result = AcquireInstance(launcher_instance, InstanceRole::kLauncher);
     if (result != InstanceResult::kAcquired)
-      return ExitForExistingInstance(result, true);
+      return ExitForExistingInstance(result, true, pending_connect_id);
   }
   const auto result = AcquireInstance(client_instance, InstanceRole::kClient);
   if (result != InstanceResult::kAcquired)
-    return ExitForExistingInstance(result, !IsDaemonChild(argc, argv));
+    return ExitForExistingInstance(result, !IsDaemonChild(argc, argv),
+                                   pending_connect_id);
 
 #ifdef __linux__
   const int exit_code = crossdesk::RunWithLinuxDisplay(
@@ -479,6 +507,6 @@ int main(int argc, char* argv[]) {
   }
   return exit_code;
 #else
-  return RunApplication(argc, argv);
+  return RunApplication(argc, argv, pending_connect_id);
 #endif
 }

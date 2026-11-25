@@ -568,6 +568,10 @@ inline constexpr TranslationRow kTranslationRows[] = {
   {"本端地址", {"本端地址", "Local endpoint", "Локальный адрес", "本端位址", "ローカルアドレス", "로컬 주소", "Lokale Adresse", "Adresse locale", "Dirección local", "Endereço local"}},
   {"对端地址", {"对端地址", "Remote endpoint", "Удалённый адрес", "對端位址", "リモートアドレス", "원격 주소", "Remote-Adresse", "Adresse distante", "Dirección remota", "Endereço remoto"}},
   {"仅自建服务端支持更改 ID", {"仅自建服务端支持更改 ID", "Changing the device ID is only supported on a self-hosted server", "Смена ID устройства поддерживается только на собственном сервере", "僅自建伺服器支援更改 ID", "IDの変更はセルフホストサーバーでのみ利用できます", "ID 변경은 자체 호스팅 서버에서만 지원됩니다", "Das Ändern der ID wird nur auf einem selbst gehosteten Server unterstützt", "La modification de l'ID est uniquement prise en charge sur un serveur auto-hébergé", "El cambio de ID solo es compatible con un servidor autoalojado", "A alteração do ID só é compatível com um servidor auto-hospedado"}},
+  {"通讯录", {"通讯录", "Contacts", "Контакты", "通訊錄", "連絡先", "연락처", "Kontakte", "Contacts", "Contactos", "Contatos"}},
+  {"添加到通讯录", {"添加到通讯录", "Add to contacts", "Добавить в контакты", "加入通訊錄", "連絡先に追加", "연락처에 추가", "Zu Kontakten hinzufügen", "Ajouter aux contacts", "Añadir a contactos", "Adicionar aos contatos"}},
+  {"在桌面创建快捷方式", {"在桌面创建快捷方式", "Create desktop shortcut", "Создать ярлык на рабочем столе", "在桌面建立捷徑", "デスクトップにショートカットを作成", "바탕 화면에 바로 가기 만들기", "Desktop-Verknüpfung erstellen", "Créer un raccourci sur le bureau", "Crear acceso directo en el escritorio", "Criar atalho na área de trabalho"}},
+  {"暂无联系人", {"暂无联系人", "No contacts yet", "Пока нет контактов", "尚無聯絡人", "連絡先がまだありません", "연락처가 없습니다", "Noch keine Kontakte", "Aucun contact pour l'instant", "Aún no hay contactos", "Ainda não há contatos"}},
 };
 
 struct NamedTranslation { const char* name; const char* literal; };
@@ -1088,6 +1092,10 @@ inline constexpr const char* kSlintLiterals[] = {
   "更改 ID",
   "新 ID（1–9 位数字或字母）",
   "请输入 1–9 位字母或数字，首位不能为 0，也不能以 C-、web-、cli- 开头。",
+  "通讯录",
+  "添加到通讯录",
+  "在桌面创建快捷方式",
+  "暂无联系人",
 };
 }  // namespace detail
 

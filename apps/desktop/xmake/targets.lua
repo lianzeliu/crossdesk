@@ -719,9 +719,10 @@ function setup_targets()
                 "apps/desktop/src/platform/windows/service/local_host_channel.cpp")
             add_syslinks("Wtsapi32")
             add_links("opengl32")
-            add_syslinks("Comctl32", "Iphlpapi", "Ws2_32", "Advapi32", {public = true})
+            add_syslinks("Comctl32", "Iphlpapi", "Ws2_32", "Advapi32", "Shell32", "Ole32", {public = true})
             add_files("apps/desktop/src/platform/windows/gui/tray/win_tray.cpp",
                 "apps/desktop/src/platform/windows/gui/slint_backend.cpp",
+                "apps/desktop/src/platform/windows/gui/desktop_shortcut.cpp",
                 "apps/desktop/src/platform/windows/gui/window_icons.cpp",
                 "apps/desktop/src/platform/windows/gui/window_taskbar.cpp",
                 "apps/desktop/src/platform/windows/gui/session_end_observer.cpp",

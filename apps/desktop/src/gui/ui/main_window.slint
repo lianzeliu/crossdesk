@@ -37,6 +37,12 @@ export struct RecentConnection {
     platform: string,
 }
 
+export struct ContactEntry {
+    id: string,
+    name: string,
+    online: bool,
+}
+
 export struct ReleaseNoteBlock {
     content: styled-text,
     section-gap: bool,
@@ -475,7 +481,7 @@ export component MainWindow inherits Window {
     in property <bool> window-active: true;
     private property <length> titlebar-height:
         root.custom-titlebar && !root.gallery-fullscreen ? (root.wayland-titlebar ? 32px : 31px) : 0px;
-    out property <length> minimum-window-width: 640px;
+    out property <length> minimum-window-width: 900px;
     out property <length> minimum-window-height:
         (root.gallery-mode ? 448px : 472px) + root.titlebar-height;
     private property <length> wayland-corner-radius: 12px;
@@ -672,6 +678,12 @@ export component MainWindow inherits Window {
     in property <bool> signal-reconnecting: false;
     in property <bool> signal-tls-error: false;
     in property <[RecentConnection]> recent-connections;
+    in property <[ContactEntry]> contacts;
+    callback contact-connect(string);
+    callback contact-remove(string);
+    callback contact-edit-alias(string, string);
+    callback contact-create-shortcut(string);
+    callback recent-add-contact(string);
     out property <length> recent-preview-width: max(1px, (recent-scroll.width - 24px) / 3);
     out property <length> recent-preview-height: 80px;
     in property <[string]> recent-groups: [GalleryStrings.texts[57], GalleryStrings.texts[31]];
@@ -919,6 +931,7 @@ export component MainWindow inherits Window {
     in-out property <string> new-password-input: "";
     in-out property <bool> alias-open: false;
     private property <string> alias-remote-id: "";
+    private property <bool> alias-for-contact: false;
     in-out property <string> alias-input: "";
     in-out property <bool> delete-open: false;
     private property <string> delete-remote-id: "";
@@ -1786,7 +1799,7 @@ export component MainWindow inherits Window {
             recent-list := FlatSurface {
                 x: 20px;
                 y: 36px;
-                width: parent.width - 40px;
+                width: parent.width - 40px - 260px;
                 height: 142px;
                 // A light flat surface groups the cards and their scrollbar.
                 background: root.recent-connections.length > 0 ? #f5f7fb : transparent;
@@ -2009,8 +2022,9 @@ export component MainWindow inherits Window {
                                     {label: GalleryStrings.texts[35], enabled: true},
                                     {label: GalleryStrings.texts[30], enabled: !connection.lan},
                                     {label: GalleryStrings.texts[95], enabled: true},
+                                    {label: GalleryStrings.texts[219], enabled: !connection.lan},
                                 ];
-                                item-icons: [FontAwesomeIcons.pen, FontAwesomeIcons.tags, FontAwesomeIcons.trash-can];
+                                item-icons: [FontAwesomeIcons.pen, FontAwesomeIcons.tags, FontAwesomeIcons.trash-can, FontAwesomeIcons.copy];
                                 destructive-index: 2;
                                 opened => { root.recent-tooltip-visible = false; root.copy-feedback = CopyFeedback.idle; }
                                 selected(action) => {
@@ -2018,6 +2032,7 @@ export component MainWindow inherits Window {
                                     if action == 0 {
                                         root.alias-remote-id = connection.remote-id;
                                         root.alias-input = connection.display-name;
+                                        root.alias-for-contact = false;
                                         root.alias-open = true;
                                     } else if action == 1 {
                                         root.open-device-groups(connection.remote-id, connection.display-name);
@@ -2025,6 +2040,8 @@ export component MainWindow inherits Window {
                                         root.delete-remote-id = connection.remote-id;
                                         root.delete-from-gallery = false;
                                         root.delete-open = true;
+                                    } else if action == 3 {
+                                        root.recent-add-contact(connection.remote-id);
                                     }
                                 }
                             }
@@ -2057,6 +2074,108 @@ export component MainWindow inherits Window {
                         }
                     }
                 }
+                }
+            }
+            // Address book: right column beside the recent list. Click a
+            // contact to connect; right-click (or the "..." button) opens
+            // the shortcut/rename/delete menu.
+            contacts-panel := FlatSurface {
+                x: parent.width - 268px;
+                y: 36px;
+                width: 248px;
+                height: parent.height - 48px;
+                background: white;
+                outline-color: UiSurface.edge;
+                border-radius: UiRadius.surface;
+                clip: true;
+                Text {
+                    x: 12px; y: 0px; width: 120px; height: 32px;
+                    text: GalleryStrings.texts[218];
+                    font-size: 15px; font-weight: 600; color: WorkbenchStyle.text;
+                    vertical-alignment: center;
+                }
+                Text {
+                    x: parent.width - 60px; y: 0px; width: 48px; height: 32px;
+                    text: "" + root.contacts.length;
+                    font-size: 12px; color: WorkbenchStyle.muted;
+                    horizontal-alignment: right; vertical-alignment: center;
+                }
+                SurfaceSeparator {
+                    x: 12px; y: 32px; width: parent.width - 24px; height: 1px;
+                    outline-color: UiSurface.separator;
+                }
+                contacts-scroll := ScrollView {
+                    x: 1px; y: 33px;
+                    width: parent.width - 2px;
+                    height: parent.height - 34px;
+                    viewport-width: self.width - 12px;
+                    viewport-height: max(self.height, root.contacts.length * 44px);
+                    for contact[index] in root.contacts: Rectangle {
+                        y: index * 44px; width: contacts-scroll.viewport-width; height: 44px;
+                        background: row-touch.has-hover ? ControlStyle.hover : white;
+                        private property <length> scroll-offset: contacts-scroll.viewport-y;
+                        changed scroll-offset => { row-menu.close-menu(); }
+                        Text {
+                            x: 12px; y: 4px; width: parent.width - 64px; height: 19px;
+                            text: contact.name; color: WorkbenchStyle.text;
+                            font-size: 13px; font-weight: 600; overflow: elide; vertical-alignment: center;
+                        }
+                        Text {
+                            x: 12px; y: 24px; width: parent.width - 64px; height: 16px;
+                            text: contact.id; font-size: 11px; color: WorkbenchStyle.muted; overflow: elide;
+                        }
+                        Rectangle {
+                            x: parent.width - 56px; y: 19px; width: 6px; height: 6px; border-radius: 3px;
+                            background: contact.online ? #21b567 : #92969e;
+                        }
+                        row-touch := TouchArea {
+                            x: 0px; y: 0px; width: parent.width; height: parent.height;
+                            mouse-cursor: pointer;
+                            clicked => { root.contact-connect(contact.id); }
+                            pointer-event(event) => {
+                                if event.button == PointerEventButton.right && event.kind == PointerEventKind.down {
+                                    row-menu.open-menu();
+                                }
+                            }
+                        }
+                        row-menu := GalleryMenuButton {
+                            x: parent.width - self.width - 8px; y: 10px;
+                            width: 24px; height: 24px;
+                            compact-trigger: true;
+                            compact-menu: true;
+                            enabled: !root.gallery-mode;
+                            text: GalleryStrings.texts[94];
+                            menu-width: root.compact-language ? 168px : 216px;
+                            items: [
+                                {label: GalleryStrings.texts[220], enabled: true},
+                                {label: GalleryStrings.texts[35], enabled: true},
+                                {label: GalleryStrings.texts[95], enabled: true},
+                            ];
+                            item-icons: [FontAwesomeIcons.arrow-up-right-from-square, FontAwesomeIcons.pen, FontAwesomeIcons.trash-can];
+                            destructive-index: 2;
+                            selected(action) => {
+                                if action == 0 {
+                                    root.contact-create-shortcut(contact.id);
+                                } else if action == 1 {
+                                    root.alias-remote-id = contact.id;
+                                    root.alias-input = contact.name;
+                                    root.alias-for-contact = true;
+                                    root.alias-open = true;
+                                } else if action == 2 {
+                                    root.contact-remove(contact.id);
+                                }
+                            }
+                        }
+                        if index + 1 < root.contacts.length: SurfaceSeparator {
+                            x: 12px; y: parent.height - 1px; width: parent.width - 24px; height: 1px;
+                            outline-color: UiSurface.separator;
+                        }
+                    }
+                }
+                if root.contacts.length == 0: Text {
+                    x: 0px; y: 33px; width: parent.width; height: parent.height - 33px;
+                    text: GalleryStrings.texts[221]; color: #808080; font-size: 12px;
+                    horizontal-alignment: center; vertical-alignment: center;
                 }
             }
         }
@@ -2653,13 +2772,14 @@ export component MainWindow inherits Window {
                     normal-outline-color: UiSurface.edge;
                     text <=> root.alias-input;
                     accepted => {
-                        root.recent-edit-alias(root.alias-remote-id, root.alias-input);
+                        if root.alias-for-contact { root.contact-edit-alias(root.alias-remote-id, root.alias-input); }
+                        else { root.recent-edit-alias(root.alias-remote-id, root.alias-input); }
                         root.alias-open = false;
                     }
                 }
                 HorizontalLayout {
                     alignment: center; spacing: 8px;
-                    PrimaryButton { text: UiStrings.ok; clicked => { root.recent-edit-alias(root.alias-remote-id, root.alias-input); root.alias-open = false; } }
+                    PrimaryButton { text: UiStrings.ok; clicked => { if root.alias-for-contact { root.contact-edit-alias(root.alias-remote-id, root.alias-input); } else { root.recent-edit-alias(root.alias-remote-id, root.alias-input); } root.alias-open = false; } }
                     SecondaryButton { text: UiStrings.cancel; clicked => { root.alias-open = false; } }
                 }
             }

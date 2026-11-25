@@ -73,6 +73,19 @@ class ConfigCenter {
   int SetLastPresentedRelease(const std::string& version);
   int SetFileTransferSavePath(const std::string& path);
 
+  // Address book: ordered (id, display name) pairs. The display name
+  // defaults to the id when empty. Entries are stored as one JSON value so
+  // the list survives restarts without a second file.
+  struct Contact {
+    std::string id;
+    std::string name;
+  };
+  std::vector<Contact> GetContacts() const;
+  bool HasContact(const std::string& id) const;
+  int AddContact(const std::string& id, const std::string& name);
+  int RemoveContact(const std::string& id);
+  int RenameContact(const std::string& id, const std::string& name);
+
   // read config
 
   LANGUAGE GetLanguage() const;
@@ -115,6 +128,7 @@ class ConfigCenter {
  private:
   int CommitIni(bool warn_only = false);
   int StoreValues(std::initializer_list<std::pair<const char*, std::string>> values);
+  int PersistContacts();
   mutable std::mutex file_path_mutex_;
   std::string config_path_;
   struct IniStorage;
@@ -152,6 +166,7 @@ class ConfigCenter {
   bool portable_service_prompt_suppressed_ = false;
   std::string last_presented_release_;
   std::string file_transfer_save_path_ = "";
+  std::vector<Contact> contacts_;
 };
 }  // namespace crossdesk
 #endif

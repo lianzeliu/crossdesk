@@ -35,6 +35,13 @@ public:
   ~GuiApplication();
 
   int Run();
+  // Shortcut/CLI entry point: connect to this peer once the signal server
+  // is up. Kept for 60s; a failed attempt is not retried.
+  void SetPendingConnectId(const std::string& id) {
+    pending_connect_id_ = id;
+    pending_connect_deadline_ =
+        std::chrono::steady_clock::now() + std::chrono::seconds(60);
+  }
 #ifdef _WIN32
   int RunUnattended(void* stop_event);
 #endif
@@ -75,6 +82,8 @@ private:
   void HandleDeviceIdChangeResult();
   void HandleCredentialRecovery();
   void SyncMainWindow();
+  void SyncContacts();
+  void HandlePendingConnect();
   void ShowGalleryWindow();
   void CloseGalleryWindow();
   void SyncWindowGeometry(bool gallery_window);
@@ -152,6 +161,8 @@ private:
 
   std::unique_ptr<SlintUi> ui_;
   std::unique_ptr<UpdateChecker> update_checker_;
+  std::string pending_connect_id_;
+  std::chrono::steady_clock::time_point pending_connect_deadline_{};
 #if CROSSDESK_HAS_UPDATER
   std::unique_ptr<updater::Controller> updater_;
 #endif

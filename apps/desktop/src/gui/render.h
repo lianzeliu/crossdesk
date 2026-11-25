@@ -8,6 +8,7 @@
 #define _RENDER_H_
 
 #include <memory>
+#include <string>
 
 namespace crossdesk {
 
@@ -24,6 +25,9 @@ public:
   Render &operator=(const Render &) = delete;
 
   int Run();
+  // Connect to this peer once the signal server is up (see
+  // GuiApplication::SetPendingConnectId). No-op when empty.
+  void SetPendingConnectId(const std::string& id);
 #ifdef _WIN32
   int RunUnattended(void* stop_event);
 #endif

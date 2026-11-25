@@ -65,6 +65,7 @@
 #include <windows.h>
 
 #include "platform/windows/gui/slint_backend.h"
+#include "platform/windows/gui/desktop_shortcut.h"
 #include "platform/windows/gui/session_end_observer.h"
 #include "platform/windows/gui/tray/win_tray.h"
 #include "platform/windows/gui/window_icons.h"
@@ -1161,6 +1162,9 @@ struct GuiApplication::SlintUi {
   bool gallery_previous_mouse_control = false;
   std::shared_ptr<slint::VectorModel<ui::RecentConnection>> recent_model =
       std::make_shared<slint::VectorModel<ui::RecentConnection>>();
+  std::shared_ptr<slint::VectorModel<ui::ContactEntry>> contacts_model =
+      std::make_shared<slint::VectorModel<ui::ContactEntry>>();
+  std::string contacts_model_signature;
   struct TransferNotification {
     std::optional<slint::ComponentHandle<ui::FileTransferNotification>> window;
     RemoteSession::FileTransferInfo info;
@@ -1506,6 +1510,7 @@ void GuiApplication::InitializeUi() {
   ui_->main->set_release_note_blocks(ui_->release_note_blocks_model);
   RegisterFontAwesome(ui_->main->window());
   ui_->main->set_recent_connections(ui_->recent_model);
+  ui_->main->set_contacts(ui_->contacts_model);
   ui_->gallery_path = std::filesystem::path(cache_path_) / "deskhub.json";
   if (!ui_->gallery.Load(ui_->gallery_path))
     LOG_WARN("Could not load DeskHub workspace; original file retained");
@@ -2091,6 +2096,62 @@ void GuiApplication::BindMainCallbacks(bool gallery_window) {
       settings_.SaveRecentConnectionAliases();
       reload_recent_connections_ = true;
     }
+  });
+  main->on_recent_add_contact([this](slint::SharedString id) {
+    const std::string remote_id = CompactPeerId(std::string(id));
+    if (!gallery::Workspace::ValidId(remote_id) ||
+        config_center_->HasContact(remote_id))
+      return;
+    std::string display_name = remote_id;
+    for (const auto& [_, recent] : recent_connections_)
+      if (recent.remote_id == remote_id) {
+        display_name = settings_.RecentConnectionDisplayName(recent);
+        break;
+      }
+    if (config_center_->AddContact(remote_id, display_name) != 0) {
+      LOG_WARN("Could not add {} to contacts", remote_id);
+      return;
+    }
+    SyncContacts();
+  });
+  main->on_contact_connect(
+      [this](slint::SharedString id) { ConnectFromUi(std::string(id)); });
+  main->on_contact_remove([this](slint::SharedString id) {
+    if (config_center_->RemoveContact(std::string(id)) != 0) {
+      LOG_WARN("Could not remove {} from contacts", std::string(id));
+      return;
+    }
+    SyncContacts();
+  });
+  main->on_contact_edit_alias(
+      [this](slint::SharedString id, slint::SharedString alias) {
+        const std::string remote_id(id);
+        if (config_center_->RenameContact(remote_id,
+                                          Trim(std::string(alias))) != 0) {
+          LOG_WARN("Could not rename contact {}", remote_id);
+          return;
+        }
+        SyncContacts();
+      });
+  main->on_contact_create_shortcut([this](slint::SharedString id) {
+    const std::string remote_id(id);
+    std::string display_name = remote_id;
+    for (const auto& contact : config_center_->GetContacts())
+      if (contact.id == remote_id) {
+        display_name = contact.name;
+        break;
+      }
+#ifdef _WIN32
+    std::string error;
+    if (!platform::CreateDesktopConnectShortcut(remote_id, display_name,
+                                                error)) {
+      LOG_WARN("Could not create desktop shortcut for {}: {}", remote_id,
+               error);
+    }
+#else
+    (void)display_name;
+    LOG_WARN("Desktop shortcuts are only supported on Windows");
+#endif
   });
   main->on_browse_save_path([this, main] {
     const char* folder = tinyfd_selectFolderDialog(
@@ -2791,6 +2852,14 @@ void GuiApplication::Tick() {
 #endif
   if (activation_requested) ShowMainWindow(activation_token);
 #endif
+#ifdef _WIN32
+  if (ui_->activation_receiver) {
+    std::string forwarded_connect_id;
+    if (ui_->activation_receiver->TakeConnectRequest(&forwarded_connect_id))
+      SetPendingConnectId(forwarded_connect_id);
+  }
+#endif
+  HandlePendingConnect();
 #if (defined(__linux__) && !defined(__OHOS__)) && !defined(__APPLE__)
   if (ui_->main_activation_attempts > 0) {
     --ui_->main_activation_attempts;
@@ -3829,6 +3898,49 @@ void GuiApplication::SyncMainWindow() {
       model.begin(), model.end(),
       [](const ui::RecentConnection& connection) { return connection.online; });
   ui_->recent_model->set_vector(std::move(model));
+  SyncContacts();
+}
+
+void GuiApplication::SyncContacts() {
+  const auto is_connected = [this](const std::string& id) {
+    const auto props = FindRemoteSession(id);
+    return props && props->connection_status_ == MiniRtcConnectionStatus::MiniRtcConnectionConnected &&
+           !props->closing_;
+  };
+  std::ostringstream signature_builder;
+  for (const auto& contact : config_center_->GetContacts()) {
+    signature_builder << contact.id << '\0' << contact.name << '\0'
+                      << device_presence_cache_.IsOnline(contact.id) << '\0'
+                      << is_connected(contact.id) << '\n';
+  }
+  const std::string signature = signature_builder.str();
+  if (ui_->contacts_model_signature == signature) return;
+  ui_->contacts_model_signature = signature;
+
+  std::vector<ui::ContactEntry> model;
+  model.reserve(config_center_->GetContacts().size());
+  for (const auto& contact : config_center_->GetContacts()) {
+    ui::ContactEntry item{};
+    item.id = UiText(contact.id);
+    item.name = UiText(contact.name);
+    item.online = device_presence_cache_.IsOnline(contact.id);
+    model.push_back(std::move(item));
+  }
+  ui_->contacts_model->set_vector(std::move(model));
+}
+
+void GuiApplication::HandlePendingConnect() {
+  if (pending_connect_id_.empty()) return;
+  if (std::chrono::steady_clock::now() > pending_connect_deadline_) {
+    LOG_INFO("Dropping stale pending connect request");
+    pending_connect_id_.clear();
+    return;
+  }
+  if (!signal_connected_.load()) return;
+  const std::string remote_id = pending_connect_id_;
+  pending_connect_id_.clear();
+  LOG_INFO("Connecting to pending shortcut target [{}]", remote_id);
+  ConnectFromUi(remote_id);
 }
 
 void GuiApplication::SyncConnectionDialog() {

@@ -3,6 +3,7 @@
 
 #include <sddl.h>
 
+#include <cstring>
 #include <utility>
 #include <vector>
 
@@ -11,6 +12,8 @@ namespace {
 
 constexpr wchar_t kWindowClass[] = L"CrossDesk.InstanceActivationWindow";
 constexpr wchar_t kActivationMessage[] = L"CrossDesk.ActivateMainWindow.v1";
+// WM_COPYDATA dwData tag for a forwarded `--connect` peer id payload.
+constexpr ULONG_PTR kConnectIdDataId = 1;
 constexpr ULONGLONG kStartupWaitMs = 5000;
 
 std::wstring ActivationWindowName(const std::string& application,
@@ -96,12 +99,28 @@ bool InstanceActivationReceiver::Start(std::string& error) {
     window_ = nullptr;
     return false;
   }
+  // The forwarded --connect id arrives as WM_COPYDATA from the second
+  // launch; allow it through the same filter.
+  if (!ChangeWindowMessageFilterEx(window_, WM_COPYDATA, MSGFLT_ALLOW,
+                                   nullptr)) {
+    error = "Cannot allow connect-id message: " + std::to_string(GetLastError());
+    DestroyWindow(window_);
+    window_ = nullptr;
+    return false;
+  }
   return true;
 }
 
 bool InstanceActivationReceiver::TakeRequest(std::string* activation_token) {
   if (activation_token) activation_token->clear();
   return std::exchange(requested_, false);
+}
+
+bool InstanceActivationReceiver::TakeConnectRequest(std::string* peer_id) {
+  if (!peer_id) return false;
+  *peer_id = std::move(pending_connect_id_);
+  pending_connect_id_.clear();
+  return !peer_id->empty();
 }
 
 LRESULT CALLBACK InstanceActivationReceiver::WindowProc(HWND window,
@@ -120,6 +139,18 @@ LRESULT CALLBACK InstanceActivationReceiver::WindowProc(HWND window,
     // from a native message callback (which may run inside a nested event
     // loop).
     receiver->requested_ = true;
+    return 0;
+  }
+  if (receiver && message == WM_COPYDATA) {
+    const auto* data = reinterpret_cast<COPYDATASTRUCT*>(lparam);
+    if (data && data->dwData == kConnectIdDataId && data->cbData > 0 &&
+        data->cbData <= 64 && data->lpData) {
+      const char* bytes = static_cast<const char*>(data->lpData);
+      // The payload is a UTF-8 peer id without a terminator; reject
+      // embedded NULs so a truncated id can never be used.
+      if (std::memchr(bytes, '\0', data->cbData) == nullptr)
+        receiver->pending_connect_id_.assign(bytes, data->cbData);
+    }
     return 0;
   }
   return DefWindowProcW(window, message, wparam, lparam);
@@ -146,6 +177,51 @@ bool RequestInstanceActivation(std::string& error, const std::string& applicatio
         // not its supervisor, before posting the request. Windows may still
         // deny foreground focus; the receiver will restore visibility anyway.
         AllowSetForegroundWindow(process_id);
+        if (PostMessageW(window, message, 0, 0)) return true;
+        last_error = GetLastError();
+      }
+    }
+    if (GetTickCount64() >= deadline) break;
+    Sleep(50);
+  } while (true);
+  error = "Cannot notify the existing CrossDesk window on this desktop: " +
+          std::to_string(last_error);
+  return false;
+}
+
+bool RequestInstanceActivationWithConnect(std::string& error,
+                                          const std::string& connect_id,
+                                          const std::string& application) {
+  error.clear();
+  if (connect_id.empty() || connect_id.size() > 64) {
+    error = "Invalid connect id for instance activation";
+    return false;
+  }
+  const auto name = ActivationWindowName(application, error);
+  if (name.empty()) return false;
+  const UINT message = RegisterWindowMessageW(kActivationMessage);
+  if (!message) {
+    error =
+        "Cannot register activation message: " + std::to_string(GetLastError());
+    return false;
+  }
+  const ULONGLONG deadline = GetTickCount64() + kStartupWaitMs;
+  DWORD last_error = ERROR_NOT_FOUND;
+  do {
+    if (const HWND window =
+            FindWindowExW(HWND_MESSAGE, nullptr, kWindowClass, name.c_str())) {
+      DWORD process_id = 0;
+      if (GetWindowThreadProcessId(window, &process_id) && process_id != 0) {
+        AllowSetForegroundWindow(process_id);
+        COPYDATASTRUCT data{};
+        data.dwData = kConnectIdDataId;
+        data.cbData = static_cast<DWORD>(connect_id.size());
+        data.lpData = const_cast<char*>(connect_id.data());
+        // Best effort: the activation below still wakes the window even if
+        // the payload is dropped (e.g. UIPI on an older receiver).
+        SendMessageTimeoutW(window, WM_COPYDATA, 0,
+                            reinterpret_cast<LPARAM>(&data), SMTO_NORMAL, 2000,
+                            nullptr);
         if (PostMessageW(window, message, 0, 0)) return true;
         last_error = GetLastError();
       }

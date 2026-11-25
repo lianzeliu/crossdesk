@@ -37,7 +37,7 @@ export component GalleryMenuButton inherits Rectangle {
     changed visible => { if !root.visible { popup.close(); } }
 
     public function close-menu() { popup.close(); }
-    function open-menu() {
+    public function open-menu() {
         if !root.enabled || root.items.length == 0 { return; }
         if popup.is-open { popup.close(); return; }
         root.opened();

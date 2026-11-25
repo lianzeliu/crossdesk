@@ -32,6 +32,12 @@ class InstanceActivationReceiver {
   bool Start(std::string& error);
   bool TakeRequest(std::string* activation_token = nullptr);
 
+#ifdef _WIN32
+  // A peer id forwarded by a second launch (desktop shortcut --connect).
+  // Take it once; the UI validates it before connecting.
+  bool TakeConnectRequest(std::string* peer_id);
+#endif
+
  private:
   std::string application_;
 #ifdef _WIN32
@@ -41,6 +47,7 @@ class InstanceActivationReceiver {
   HWND window_ = nullptr;
   UINT activation_message_ = 0;
   bool requested_ = false;
+  std::string pending_connect_id_;
 #else
   int socket_ = -1;
   std::string socket_path_;
@@ -53,6 +60,15 @@ class InstanceActivationReceiver {
 // child. Waits briefly for startup/restart, without waiting on its UI thread.
 bool RequestInstanceActivation(std::string& error,
                                const std::string& application = "CrossDesk");
+
+#ifdef _WIN32
+// Like RequestInstanceActivation, but also carries a peer id (desktop
+// shortcut --connect) to the running instance via WM_COPYDATA. The id is
+// validated by the receiver's UI before connecting.
+bool RequestInstanceActivationWithConnect(std::string& error,
+                                          const std::string& connect_id,
+                                          const std::string& application = "CrossDesk");
+#endif
 
 }  // namespace crossdesk::platform
 
