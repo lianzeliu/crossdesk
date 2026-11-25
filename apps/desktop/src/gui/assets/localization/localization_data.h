@@ -527,6 +527,8 @@ inline constexpr TranslationRow kTranslationRows[] = {
   {"发送到本机", {"发送到本机", "Send to local", "Отправить на этот ПК", "傳送到本機", "この端末へ送信", "이 기기로 보내기", "An diesen PC senden", "Envoyer à ce PC", "Enviar a este equipo", "Enviar a este computador"}},
   {"清除已完成", {"清除已完成", "Clear completed", "Убрать завершённые", "清除已完成", "完了済みをクリア", "완료 항목 지우기", "Abgeschlossene entfernen", "Effacer les tâches terminées", "Limpiar completadas", "Limpar concluídas"}},
   {"打开目录", {"打开目录", "Open folder", "Открыть папку", "開啟目錄", "フォルダーを開く", "폴더 열기", "Ordner öffnen", "Ouvrir le dossier", "Abrir carpeta", "Abrir pasta"}},
+  {"低负载编码", {"低负载编码", "Low-load encoding", "Кодирование с низкой нагрузкой", "低負載編碼", "低負荷エンコード", "저부하 인코딩", "Ressourcenschonende Kodierung", "Encodage économe en ressources", "Codificación de bajo consumo de recursos", "Codificação com baixo uso de recursos"}},
+  {"从下一次桌面连接起，优先使用编码器支持的低负载设置。已有连接沿用原设置。", {"从下一次桌面连接起，优先使用编码器支持的低负载设置。已有连接沿用原设置。", "Prefer low-load encoding for new desktop connections when supported. Existing connections keep their settings.", "Для новых подключений к рабочему столу предпочитать кодирование с низкой нагрузкой, если оно поддерживается. Текущие подключения сохраняют свои настройки.", "從下一次桌面連線起，優先使用編碼器支援的低負載設定。現有連線沿用原設定。", "次回のデスクトップ接続から、対応するエンコーダーで低負荷エンコードを優先します。接続中のセッションでは現在の設定を使用します。", "다음 데스크톱 연결부터 지원되는 경우 저부하 인코딩을 우선 사용합니다. 기존 연결은 현재 설정을 유지합니다.", "Bei neuen Desktopverbindungen ressourcenschonende Kodierung bevorzugen, sofern verfügbar. Bestehende Verbindungen behalten ihre Einstellungen.", "Privilégier un encodage économe en ressources pour les nouvelles connexions au bureau si possible. Les connexions en cours conservent leurs réglages.", "Dar prioridad a la codificación de bajo consumo de recursos en las nuevas conexiones de escritorio si está disponible. Las conexiones actuales conservan sus ajustes.", "Priorizar a codificação com baixo uso de recursos nas novas conexões de área de trabalho quando disponível. As conexões atuais mantêm suas configurações."}},
   {"最小化时暂停视频", {"最小化时暂停视频", "Pause video when minimized", "Приостанавливать видео при сворачивании", "最小化時暫停視訊", "最小化時に映像を一時停止", "최소화 시 영상 일시 중지", "Video beim Minimieren pausieren", "Mettre la vidéo en pause à la réduction", "Pausar el vídeo al minimizar", "Pausar vídeo ao minimizar"}},
   {"控制窗口最小化时暂停接收视频，降低本机解码资源占用。", {"控制窗口最小化时暂停接收视频，降低本机解码资源占用。", "Pause video reception when the control window is minimized to reduce local decoding resource usage.", "При сворачивании окна управления приём видео приостанавливается, снижая нагрузку от декодирования на этом устройстве.", "控制視窗最小化時暫停接收視訊，降低本機解碼資源占用。", "操作ウィンドウの最小化時に映像の受信を一時停止し、この端末のデコード処理による負荷を軽減します。", "제어 창을 최소화하면 영상 수신을 일시 중지하여 이 기기의 디코딩 리소스 사용량을 줄입니다.", "Pausiert den Videoempfang, wenn das Steuerungsfenster minimiert ist, und reduziert so den lokalen Ressourcenverbrauch beim Dekodieren.", "Met en pause la réception vidéo lorsque la fenêtre de contrôle est réduite afin de diminuer les ressources de décodage utilisées sur cet appareil.", "Pausa la recepción de vídeo al minimizar la ventana de control para reducir el uso de recursos de decodificación en este dispositivo.", "Pausa a recepção de vídeo ao minimizar a janela de controle para reduzir o uso de recursos de decodificação neste dispositivo."}},
   {"系统权限", {"系统权限", "System permissions", "Системные разрешения", "系統權限", "システム権限", "시스템 권한", "Systemberechtigungen", "Autorisations système", "Permisos del sistema", "Permissões do sistema"}},
@@ -858,6 +860,8 @@ inline constexpr NamedTranslation kNamedTranslations[] = {
   {"privacy_unlock_lock", "锁定"},
   {"privacy_screen_unlock_hint", "按下快捷键，解除隐私屏"},
   {"exit_program", "退出"},
+  {"desktop_rate_control", "低负载编码"},
+  {"desktop_rate_control_hint", "从下一次桌面连接起，优先使用编码器支持的低负载设置。已有连接沿用原设置。"},
   {"pause_video_when_minimized", "最小化时暂停视频"},
   {"pause_video_when_minimized_hint", "控制窗口最小化时暂停接收视频，降低本机解码资源占用。"},
   {"system_permissions", "系统权限"},
@@ -1096,6 +1100,8 @@ inline constexpr const char* kSlintLiterals[] = {
   "添加到通讯录",
   "在桌面创建快捷方式",
   "暂无联系人",
+  "低负载编码",
+  "从下一次桌面连接起，优先使用编码器支持的低负载设置。已有连接沿用原设置。",
 };
 }  // namespace detail
 
@@ -1382,6 +1388,8 @@ inline constexpr const char* kSlintLiterals[] = {
   X(privacy_unlock_lock) \
   X(privacy_screen_unlock_hint) \
   X(exit_program) \
+  X(desktop_rate_control) \
+  X(desktop_rate_control_hint) \
   X(pause_video_when_minimized) \
   X(pause_video_when_minimized_hint) \
   X(system_permissions) \

@@ -7,6 +7,8 @@
 #ifndef _CONFIG_CENTER_H_
 #define _CONFIG_CENTER_H_
 
+#include <minirtc.h>
+
 #include <atomic>
 #include <initializer_list>
 #include <map>
@@ -27,7 +29,7 @@ class ConfigCenter {
     BRAZILIAN_PORTUGUESE = 9, SYSTEM = 10
   };
   enum class CONNECTION_MODE { DEVICE_ID = 0, DIRECT_IP = 1 };
-  enum class VIDEO_ENCODE_FORMAT { H264 = 0, AV1 = 1 };
+  using VIDEO_ENCODE_FORMAT = MiniRtcVideoCodec;
   enum class TURN_MODE {
     DISABLED = 0,
     AUTO_UDP_TCP = 1,
@@ -51,6 +53,7 @@ class ConfigCenter {
   int SetLanguage(LANGUAGE language);
   int SetConnectionMode(CONNECTION_MODE mode);
   int SetIpDirectEnabled(bool enabled);
+  int SetDesktopRealtimeRateControl(bool enabled);
   int SetVideoEncodeFormat(VIDEO_ENCODE_FORMAT video_encode_format);
   int SetTurnMode(TURN_MODE turn_mode);
   int SetForceRelay(bool force_relay);
@@ -92,6 +95,11 @@ class ConfigCenter {
   CONNECTION_MODE GetConnectionMode() const;
   bool IsIpDirectEnabled() const;
   VIDEO_ENCODE_FORMAT GetVideoEncodeFormat() const;
+  bool IsDesktopRealtimeRateControlEnabled() const { return desktop_realtime_rate_control_.load(); }
+  MiniRtcDesktopEncodingMode GetDesktopEncodingMode() const {
+    return IsDesktopRealtimeRateControlEnabled() ? MiniRtcDesktopEncodingMode::LowLoad
+                                                : MiniRtcDesktopEncodingMode::EncoderDefault;
+  }
   TURN_MODE GetTurnMode() const;
   int GetDirectStartBitrateBps() const;
   int GetRelayStartBitrateBps() const;
@@ -138,6 +146,7 @@ class ConfigCenter {
   LANGUAGE language_ = LANGUAGE::SYSTEM;
   CONNECTION_MODE connection_mode_ = CONNECTION_MODE::DEVICE_ID;
   bool enable_ip_direct_ = true;
+  std::atomic<bool> desktop_realtime_rate_control_{true};
   VIDEO_ENCODE_FORMAT video_encode_format_ = VIDEO_ENCODE_FORMAT::H264;
   TURN_MODE turn_mode_ = TURN_MODE::AUTO_UDP_TCP;
   static constexpr int kDefaultDirectStartBitrateBps = 2'500'000;

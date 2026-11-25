@@ -318,16 +318,14 @@ int GuiRuntime::CreateConnectionPeer() {
 #else
   params_.native_video_output = false;
 #endif
-  params_.av1_encoding = config_center_->GetVideoEncodeFormat() ==
-                                 ConfigCenter::VIDEO_ENCODE_FORMAT::AV1
-                             ? true
-                             : false;
+  preferred_video_codec_ = config_center_->GetVideoEncodeFormat();
   params_.turn_mode = static_cast<MiniRtcTurnMode>(config_center_->GetTurnMode());
   params_.direct_start_bitrate_bps = config_center_->GetDirectStartBitrateBps();
   params_.relay_start_bitrate_bps = config_center_->GetRelayStartBitrateBps();
   params_.disable_receiver_padding_probing =
       config_center_->IsReceiverPaddingProbingDisabled();
   params_.enable_srtp = config_center_->IsEnableSrtp();
+  params_.desktop_encoding_mode = config_center_->GetDesktopEncodingMode();
   params_.video_content_type = MiniRtcVideoContentType::ScreenContent;
   // Bootstrap outgoing media with fixed defaults. Live overrides come only
   // from the authorized controller and apply to its connection on this host.
@@ -360,7 +358,7 @@ int GuiRuntime::CreateConnectionPeer() {
   if (unattended_host_ && devices_.EnsureCaptureReady() != 0) return -1;
   {
     std::unique_lock lock(remote_sessions_mutex_);
-    peer_ = MiniRtcCreatePeerWithLogDirectory(&params_, dll_log_path_.c_str());
+    peer_ = MiniRtcCreatePeerWithVideoCodec(&params_, dll_log_path_.c_str(), preferred_video_codec_);
   }
   if (peer_) {
     LOG_INFO("Create peer instance successful");
@@ -395,6 +393,9 @@ int GuiRuntime::CreateConnectionPeer() {
     devices_.EnsureCaptureReady();
     RegisterStreams(peer_, std::max<size_t>(1, devices_.display_info_list().size()));
     MiniRtcAddDataStream(peer_, web_clipboard::kStream, true);
+    const auto announcement_cache = path_manager_->GetCachePath() / "announcement_catalog";
+    const auto utf8 = announcement_cache.u8string();
+    MiniRtcSetAnnouncementCacheDirectory(peer_, std::string(utf8.begin(), utf8.end()).c_str());
     const int ret = MiniRtcInit(peer_);
     if (ret == 0) LOG_INFO("Peer initialization finished");
     return ret;

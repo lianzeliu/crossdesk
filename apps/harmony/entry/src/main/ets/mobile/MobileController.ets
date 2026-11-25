@@ -100,6 +100,8 @@ export class MobileState {
   privacyVisible: boolean = true;
   networkTime: number = 0;
   unread: number = 0;
+  announcementTotal: number = 0;
+  announcementSaveFailed: boolean = false;
   announcements: AnnouncementItem[] = [];
   announcement?: AnnouncementItem;
   documentTitle: string = '';
@@ -172,7 +174,12 @@ export class MobileController {
     });
     this.inbox = new AnnouncementInbox((request: AnnouncementRequest) => this.send({ op: 'signal', message: request }),
       (scope: string) => this.store.text(`inbox:${scope}`, '{}'), (scope: string, body: string) => this.store.put(`inbox:${scope}`, body));
-    this.inbox.changed = () => { this.state.announcements = this.inbox.items.slice(); this.state.unread = this.inbox.unread; };
+    this.inbox.changed = () => { this.state.announcements = this.inbox.items.slice(); this.state.unread = this.inbox.unread;
+      this.state.announcementSaveFailed = this.inbox.saveFailed;
+      this.state.announcementTotal = this.inbox.total;
+      const selected = this.state.announcement;
+      if (selected && !this.inbox.loading) this.state.announcement = this.inbox.items.find((item: AnnouncementItem) =>
+        item.id === selected.id && item.revision === selected.revision); };
     MobileLifecycle.foreground = () => this.resume(); MobileLifecycle.background = () => this.background(); MobileLifecycle.destroy = () => this.destroy();
     this.history(); this.timer = setInterval(() => this.poll(), 50);
     if (!this.state.consent) this.state.modal = 'consent'; else this.resume();
@@ -526,7 +533,7 @@ export class MobileController {
       this.state.signalText = labels[this.state.signal] ?? tr("未连接"); this.presence.connect(this.state.signal === 1, this.now()); this.configureInbox(); this.joinIfReady();
     } else if (e.type === 'signalMessage' && e.generation === this.signalGeneration && e.message) {
       const type = (e.message as SignalType).type;
-      if (type === 'announcements_changed') this.inbox.refresh();
+      if (type === 'announcements_changed') this.inbox.catalogChanged((e.message as AnnouncementResponse).reset_pages === true);
       else if (type === 'announcements') this.inbox.receive(e.message as AnnouncementResponse);
       else this.presence.receive(e.message as PresenceMessage, this.now());
     } else if (e.type === 'requestFailed') this.inbox.fail(String(e.request ?? ''));
