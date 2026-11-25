@@ -3686,7 +3686,6 @@ void GuiApplication::SyncMainWindow() {
     main->set_latest_version(UiText(latest_version_));
     main->set_release_name(UiText(release_name_));
     main->set_release_date(UiText(release_date_));
-    main->set_settings_session_active(HasActiveSession());
   }
   if (show_offline_warning_window_) {
     ui_->main->set_offline_warning(UiText(offline_warning_text_));

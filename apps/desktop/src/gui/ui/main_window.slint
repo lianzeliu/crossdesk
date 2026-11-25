@@ -801,7 +801,6 @@ export component MainWindow inherits Window {
     in-out property <string> server-host: "";
     in-out property <string> server-port: "";
     in-out property <string> self-host-settings-error: "";
-    in property <bool> settings-session-active: false;
 
     callback copy-local-id() -> bool;
     callback toggle-password-visibility;
@@ -3073,8 +3072,8 @@ export component MainWindow inherits Window {
                             title: GalleryStrings.texts[115];
                             rows: 2;
                             SettingsRow {
-                                label: UiStrings.codec; enabled: !root.settings-session-active;
-                                SettingsSelect { x: parent.width - 116px; y: 4px; width: 104px; enabled: !root.settings-session-active; model: [UiStrings.codec-h264, UiStrings.codec-av1]; current-index <=> root.codec-index; }
+                                label: UiStrings.codec;
+                                SettingsSelect { x: parent.width - 116px; y: 4px; width: 104px; model: [UiStrings.codec-h264, UiStrings.codec-av1]; current-index <=> root.codec-index; }
                             }
                             pause-video-hover := TouchArea {
                                 height: 36px;
@@ -3103,16 +3102,15 @@ export component MainWindow inherits Window {
                                 checked <=> root.lan-listen-all-draft;
                                 enabled: root.ip-direct-enabled-draft;
                             }
-                            SettingsToggleRow { label: UiStrings.force-relay; checked <=> root.force-relay-enabled; enabled: !root.settings-session-active; }
+                            SettingsToggleRow { label: UiStrings.force-relay; checked <=> root.force-relay-enabled; }
                             SettingsToggleRow {
                                 label: UiStrings.self-hosted;
                                 label-reserve: self-host-edit.width + 84px;
-                                checked <=> root.self-hosted-enabled; enabled: !root.settings-session-active; divider: false;
+                                checked <=> root.self-hosted-enabled; divider: false;
                                 self-host-edit := SettingsButton {
                                     x: parent.width - self.width - 60px; y: 4px;
                                     width: self-host-edit-metrics.preferred-width + 24px; height: 28px;
                                     text: GalleryStrings.texts[118];
-                                    enabled: !root.settings-session-active;
                                     clicked => { root.self-host-settings-open = true; }
                                     self-host-edit-metrics := Text {
                                         visible: false; accessible-role: none;
@@ -3166,20 +3164,20 @@ export component MainWindow inherits Window {
                             title: GalleryStrings.texts[122]; rows: 2;
                             SettingsToggleRow { label: UiStrings.save-remote-previews; checked <=> root.save-remote-previews; }
                             SettingsRow {
-                                label: UiStrings.file-save-path; enabled: !root.settings-session-active; divider: false;
-                                SettingsButton { x: parent.width - 116px; y: 4px; width: 104px; height: 28px; text: root.file-save-path == "" ? UiStrings.default-desktop : root.file-save-path; enabled: !root.settings-session-active; clicked => { root.browse-save-path(); } }
+                                label: UiStrings.file-save-path; divider: false;
+                                SettingsButton { x: parent.width - 116px; y: 4px; width: 104px; height: 28px; text: root.file-save-path == "" ? UiStrings.default-desktop : root.file-save-path; clicked => { root.browse-save-path(); } }
                             }
                         }
                         SettingsGroup {
                             title: GalleryStrings.texts[123]; rows: 2;
-                            if !root.autostart-system-managed: SettingsToggleRow { label: UiStrings.autostart; checked <=> root.autostart-enabled; enabled: root.autostart-available && !root.settings-session-active; }
+                            if !root.autostart-system-managed: SettingsToggleRow { label: UiStrings.autostart; checked <=> root.autostart-enabled; enabled: root.autostart-available; }
                             if root.autostart-system-managed: SettingsToggleRow {
                                 label: UiStrings.autostart;
                                 checked: root.autostart-status == AutostartStatus.enabled;
                                 toggle-on-click: false;
                                 clicked => { root.autostart-guide-open = true; }
                             }
-                            SettingsToggleRow { label: UiStrings.daemon; checked <=> root.daemon-enabled; enabled: !root.settings-session-active; divider: false; }
+                            SettingsToggleRow { label: UiStrings.daemon; checked <=> root.daemon-enabled; divider: false; }
                         }
                         if root.service-autostart-platform: Text {
                             text: root.service-autostart-hint; wrap: word-wrap;
