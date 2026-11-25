@@ -11928,6 +11928,54 @@
       "es": "Ingrese de 1 a 9 letras o dígitos; el primer carácter no puede ser 0 y el ID no puede comenzar con C-, web- o cli-.",
       "pt-BR": "Insira de 1 a 9 letras ou dígitos; o primeiro caractere não pode ser 0 e o ID não pode começar com C-, web- ou cli-."
     },
+    "通讯录": {
+      "zh-Hans": "通讯录",
+      "en": "Contacts",
+      "ru": "Контакты",
+      "zh-Hant": "通訊錄",
+      "ja": "連絡先",
+      "ko": "연락처",
+      "de": "Kontakte",
+      "fr": "Contacts",
+      "es": "Contactos",
+      "pt-BR": "Contatos"
+    },
+    "添加到通讯录": {
+      "zh-Hans": "添加到通讯录",
+      "en": "Add to contacts",
+      "ru": "Добавить в контакты",
+      "zh-Hant": "加入通訊錄",
+      "ja": "連絡先に追加",
+      "ko": "연락처에 추가",
+      "de": "Zu Kontakten hinzufügen",
+      "fr": "Ajouter aux contacts",
+      "es": "Añadir a contactos",
+      "pt-BR": "Adicionar aos contatos"
+    },
+    "在桌面创建快捷方式": {
+      "zh-Hans": "在桌面创建快捷方式",
+      "en": "Create desktop shortcut",
+      "ru": "Создать ярлык на рабочем столе",
+      "zh-Hant": "在桌面建立捷徑",
+      "ja": "デスクトップにショートカットを作成",
+      "ko": "바탕 화면에 바로 가기 만들기",
+      "de": "Desktop-Verknüpfung erstellen",
+      "fr": "Créer un raccourci sur le bureau",
+      "es": "Crear acceso directo en el escritorio",
+      "pt-BR": "Criar atalho na área de trabalho"
+    },
+    "暂无联系人": {
+      "zh-Hans": "暂无联系人",
+      "en": "No contacts yet",
+      "ru": "Пока нет контактов",
+      "zh-Hant": "尚無聯絡人",
+      "ja": "連絡先がまだありません",
+      "ko": "연락처가 없습니다",
+      "de": "Noch keine Kontakte",
+      "fr": "Aucun contact pour l'instant",
+      "es": "Aún no hay contactos",
+      "pt-BR": "Ainda não há contatos"
+    },
     "仅自建服务端支持更改 ID": {
       "zh-Hans": "仅自建服务端支持更改 ID",
       "en": "Changing the device ID is only supported on a self-hosted server",
@@ -13025,7 +13073,14 @@
       "可使用文件传输窗口发送文件。",
       "本端地址",
       "对端地址",
-      "仅自建服务端支持更改 ID"
+      "仅自建服务端支持更改 ID",
+      "更改 ID",
+      "新 ID（1–9 位数字或字母）",
+      "请输入 1–9 位字母或数字，首位不能为 0，也不能以 C-、web-、cli- 开头。",
+      "通讯录",
+      "添加到通讯录",
+      "在桌面创建快捷方式",
+      "暂无联系人"
     ],
     "android": [
       " · 已完成",
